@@ -2,7 +2,7 @@
  * @Author: One_Random
  * @Date: 2020-08-13 11:59:59
  * @LastEditors: One_Random
- * @LastEditTime: 2020-08-13 13:37:01
+ * @LastEditTime: 2020-08-13 21:09:45
  * @FilePath: /FS/readme.md
  * @Description: Copyright © 2020 One_Random. All rights reserved.
 -->
@@ -56,6 +56,7 @@
 + 文件资源
 
 选用与node.js适应较好的MogonDB作为数据库存储，优先使用json格式保存数据。
+
 (x)在服务器机器中直接保存配置信息，优先使用json格式保存数据。
 
 ----
