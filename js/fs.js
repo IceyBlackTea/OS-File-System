@@ -2,7 +2,7 @@
  * @Author: One_Random
  * @Date: 2020-08-13 00:08:42
  * @LastEditors: One_Random
- * @LastEditTime: 2020-08-13 01:27:13
+ * @LastEditTime: 2020-08-13 12:12:35
  * @FilePath: /FS/js/fs.js
  * @Description: Copyright © 2020 One_Random. All rights reserved.
  */
@@ -10,7 +10,7 @@
 /*
  * 用户组的类
  */
-class User_Group {
+class Group {
     constructor() {
         this.ID;
         this.name;
@@ -75,16 +75,12 @@ class Folder extends Binary {
 /*
  * 权限管理的类
  */
-class Privilege {
+class Permission {
     constructor() {
         this.EXECUTE = 1;
         this.WRITE = 2;
         this.READ = 4;
-    }
-}
 
-class Permission {
-    constructor() {
         this.name; // user group other all
         this.privilege;
     }
