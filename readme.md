@@ -2,7 +2,7 @@
  * @Author: One_Random
  * @Date: 2020-08-13 11:59:59
  * @LastEditors: One_Random
- * @LastEditTime: 2020-08-13 12:23:44
+ * @LastEditTime: 2020-08-13 12:29:14
  * @FilePath: /FS/readme.md
  * @Description: Copyright © 2020 One_Random. All rights reserved.
 -->
@@ -29,14 +29,14 @@
    + 用户分类管理: 拥有者, 用户组, 其他
 
 #### 类
-1. 系统运行
-    + System类 运行的系统实例是唯一的，
+1. 系统管理
+    + System类 运行的系统实例是唯一的
     + Shell类  每个用户使用系统会生成一个Shell实例
-2. 文件读写
+2. 文件管理
     + Binary类 文件存储的基类
     + File类   文件
     + Folder类 文件夹
-3. 用户权限管理
+3. 权限管理
     + Group类 用户组
     + User类  用户
     + Permission类 权限
