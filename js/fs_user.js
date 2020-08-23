@@ -2,7 +2,7 @@
  * @Author: One_Random
  * @Date: 2020-08-13 13:52:33
  * @LastEditors: One_Random
- * @LastEditTime: 2020-08-13 13:53:00
+ * @LastEditTime: 2020-08-15 12:44:46
  * @FilePath: /FS/js/fs_user.js
  * @Description: Copyright © 2020 One_Random. All rights reserved.
  */
@@ -64,6 +64,8 @@ class User {
  */
 class Permission {
     constructor() {
+        this.INVISIBLE = 0;
+        
         this.EXECUTE = 1;
         this.WRITE = 2;
         this.READ = 4;

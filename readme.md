@@ -2,7 +2,7 @@
  * @Author: One_Random
  * @Date: 2020-08-13 11:59:59
  * @LastEditors: One_Random
- * @LastEditTime: 2020-08-13 21:09:45
+ * @LastEditTime: 2020-08-15 12:43:10
  * @FilePath: /FS/readme.md
  * @Description: Copyright © 2020 One_Random. All rights reserved.
 -->
@@ -23,7 +23,7 @@
    + 日志管理
 2. 文件管理
    + 基本操作: 创建、删除、读写
-   + 支持文件夹嵌套
+   + 支持文件夹嵌套 (树状结构目录)
    + 获取文件(夹)信息
 3. 权限管理
    + 权限控制: 运行、读取、写入
