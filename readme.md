@@ -2,11 +2,19 @@
  * @Author: One_Random
  * @Date: 2020-08-13 11:59:59
  * @LastEditors: One_Random
- * @LastEditTime: 2020-08-15 12:43:10
+ * @LastEditTime: 2020-08-24 15:22:23
  * @FilePath: /FS/readme.md
  * @Description: Copyright © 2020 One_Random. All rights reserved.
 -->
 ## 简单文件系统-基于node.js运行
+
+----
+
+### 运行环境
++ node.js
++ chromium browser
+
+----
 
 ### 前端
 + shell风格

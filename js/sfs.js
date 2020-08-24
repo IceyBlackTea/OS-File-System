@@ -2,11 +2,10 @@
  * @Author: One_Random
  * @Date: 2020-08-13 00:08:42
  * @LastEditors: One_Random
- * @LastEditTime: 2020-08-23 11:15:39
- * @FilePath: /FS/js/fs.js
+ * @LastEditTime: 2020-08-24 14:59:10
+ * @FilePath: /FS/js/sfs.js
  * @Description: Copyright © 2020 One_Random. All rights reserved.
  */
-
 
 // fs_system.js
 
@@ -154,9 +153,15 @@ class Shell {
     constructor(user, user_dir) {
         this.user = user;
         this.dir = user_dir;
+
+        this.print('Shell 1.0');
     }
 
     check_permission() {}
+
+    print(message) {
+        console.log(message);
+    }
 }
 
 /*
@@ -165,6 +170,10 @@ class Shell {
 class Log {
     constructor() {
         
+    }
+
+    print(message) {
+        console.log(message);
     }
 }
 
@@ -285,3 +294,16 @@ class Folder extends Binary {
         this.files = null;  // 子文件
     }
 }
+
+
+// exports
+exports.System = System;
+exports.Shell = Shell;
+exports.Log = Log;
+
+exports.Group = Group;
+exports.User = User;
+exports.Permission = Permission;
+
+exports.File = File;
+exports.Folder = Folder;
