@@ -2,7 +2,7 @@
  * @Author: One_Random
  * @Date: 2020-08-13 11:59:59
  * @LastEditors: One_Random
- * @LastEditTime: 2020-08-26 15:39:17
+ * @LastEditTime: 2020-08-26 15:43:29
  * @FilePath: /FS/readme.md
  * @Description: Copyright © 2020 One_Random. All rights reserved.
 -->
@@ -57,7 +57,7 @@
 
 <details>
     <summary>problem?</summary>
-    (x)在实际内容的存储上，直接存储文件夹结构
+    ~~直接存储文件到远程机器~~
 </details>
 
 ----
@@ -72,7 +72,7 @@
 
 <details>
     <summary>problem?</summary>
-    (x)在服务器机器中直接保存配置信息，优先使用json格式保存数据。
+    ~~在服务器机器中直接保存配置信息，优先使用json格式保存数据。~~
 </details>
 
 
