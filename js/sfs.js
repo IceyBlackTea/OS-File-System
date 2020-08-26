@@ -2,13 +2,13 @@
  * @Author: One_Random
  * @Date: 2020-08-13 00:08:42
  * @LastEditors: One_Random
- * @LastEditTime: 2020-08-24 14:59:10
+ * @LastEditTime: 2020-08-26 11:56:50
  * @FilePath: /FS/js/sfs.js
  * @Description: Copyright © 2020 One_Random. All rights reserved.
  */
+const sql_client = require('./sql.js');
 
 // fs_system.js
-
 /*
  * 系统的类
  */
@@ -61,14 +61,64 @@ class System {
     }
 
     initalizate() {
-        this.groups = new Array();
+        // this.users = new Array();
+        this.name = "";
+        this.version = "";
+        this.update = 0;
+
+        this.shells = new Array();
 
         this.log = new Log();
         
+        this.setup();
         // log
     }
 
+    async setup() {
+        await this.setup_system();
+        await this.setup_storage();
+        // this.setup_groups();
+    }
+
+    async setup_system() {
+        await sql_client.connect();
+        let info = (await sql_client.find('system'))[0];
+        await sql_client.disconnect();
+
+        this.name = info.name;
+        this.version = info.version;
+        this.update = info.update;
+
+        // this.log.print(info);
+        // this.show_system_info();
+    }
+
+    async setup_storage() {
+        
+    }
+
+    show_system_info() {
+        this.log.print(this.name);
+        this.log.print(this.version);
+        this.log.print(new Date(parseInt(this.update) * 1000).toLocaleString().replace(/:\d{1,2}$/,' '));
+    }
+
     check_permission() {};
+
+    new_shell(user) {
+        let ID = "";
+        let user_dir = "";
+        let shell = new Shell(ID, user, user_dir);
+        this.shells.push(shell);
+    }
+
+    delete_shell(shell_ID) {
+        for (let i = 0; i < this.shelss.length; i++) {
+            if (this.shells[i].ID = shell_ID){
+                this.shells.splice(i, 1);
+            }
+        }
+    }
 
     new_group(group_name) {
         let group_ID = ""; // Random Generate ID
@@ -150,7 +200,8 @@ class System {
  * SHELL的类
  */
 class Shell {
-    constructor(user, user_dir) {
+    constructor(ID, user, user_dir) {
+        this.ID = ID;
         this.user = user;
         this.dir = user_dir;
 
@@ -243,7 +294,7 @@ class Permission {
         this.WRITE = 2;
         this.READ = 4;
 
-        this.name; // user group other all
+        this.owner; // user group other all
         this.privilege;
     }
 }
@@ -256,9 +307,10 @@ class Permission {
 class Binary {
     constructor(ID, name, extension, parent) {
         this.ID = ID;       // 标识
+        this.parent = parent; // 父文件夹
+
+        // info
         this.name = name;   // 名称
-        this.extension = extension;     // 扩展名
-        this.size = 0;   // 大小
         this.created_time = new Date().getTime();  // 创建时间
         this.modified_time = this.created_time; // 修改时间
         // this.last_open_time; // 上次打开时间
@@ -267,7 +319,7 @@ class Binary {
         // default permissions
         this.permissions = null; // 权限管理
 
-        this.parent = parent; // 父文件夹
+
     }
 }
 
@@ -277,8 +329,10 @@ class Binary {
 class File extends Binary {
     constructor(ID, name, extension, parent, executable=false) {
         super(ID, name, extension, parent);
-        this.executable = executable;
-
+        
+        this.extension = extension;     // 扩展名
+        this.executable = executable;   // 可执行
+        this.size = 0;   // 大小
         this.data = "";
     }
 }
@@ -297,13 +351,22 @@ class Folder extends Binary {
 
 
 // exports
-exports.System = System;
-exports.Shell = Shell;
-exports.Log = Log;
+module.exports = {
+    System: System,
+    Shell: Shell,
+    Group: Group,
+    User: User,
+    Permission: Permission,
+    File: File,
+    Folder: Folder
+}
 
-exports.Group = Group;
-exports.User = User;
-exports.Permission = Permission;
+// async function get_system_info() {
+//     await sql_client.connect();
+//     let info = await sql_client.find('system');
+//     await sql_client.disconnect();
 
-exports.File = File;
-exports.Folder = Folder;
+//     console.log(info);
+// }
+
+// get_system_info();

@@ -2,7 +2,7 @@
  * @Author: One_Random
  * @Date: 2020-08-23 23:04:14
  * @LastEditors: One_Random
- * @LastEditTime: 2020-08-24 15:19:22
+ * @LastEditTime: 2020-08-26 11:44:22
  * @FilePath: /FS/js/sql.js
  * @Description: Copyright © 2020 One_Random. All rights reserved.
  */
@@ -42,6 +42,55 @@ class MongoDB {
     }
 
     /**
+     * @name: insert
+     * @description: database operation, async function; 
+     *               use like: var result = await sql.insert(collection_name, {}, {}});
+     * @param {string, json, json}
+     *  collection_name
+     *  doc
+     *  options:
+     *      ...  
+     * @return boolean
+     */
+    async insert(collection_name, doc, options={}) {
+        try {
+            const collection = this.db.collection(collection_name);
+            await collection.insertOne(doc, options);
+            return true;
+        }
+        catch(e) {
+            console.log('Collection ' + collection_name +' insert error!');
+            console.log(e);
+            return false;
+        }
+    }
+
+    /**
+     * @name: delete
+     * @description: database operation, async function; 
+     *               use like: var result = await sql.insert(collection_name, {}, {}});
+     * @param {string, json, json}
+     *  collection_name
+     *  filter
+     *  options:
+     *      ...  
+     * @return boolean
+     */
+    async delete(collection_name, filter, options={}) {
+        try {
+            const collection = this.db.collection(collection_name);
+            await collection.deleteMany(filter, options);
+            return true;
+        }
+        catch(e) {
+            console.log('Collection ' + collection_name +' delete error!');
+            console.log(e);
+            return false;
+        }
+    }
+
+
+    /**
      * @name: find
      * @description: database operation, async function; 
      *               use like: var result = await MongoDB.find(collection_name, {}, {proejction: {}});
@@ -50,7 +99,7 @@ class MongoDB {
      *  query
      *  options:
      *      limit: 0,
-     *      sort: [['a', 1]],
+     *      sort: [['a', 1], ['b', -1]],
      *      projection: {'a': 1, 'b': 0},
      *      ...  
      * @return json | false 
@@ -92,22 +141,46 @@ class MongoDB {
             return false;
         }
     }
+
 }
 
-async function test() {
-    sql = new MongoDB();
-    await sql.connect();
+// exports
+module.exports = new MongoDB();
+// module.exports = {
+//     MongoDB: new MongoDB()
+// };
 
-    // find test
-    //var result = await sql.find('system', {version: "0.1"}, {projection: {version: 0}});
-    //console.log(result);
+function test() {
+    async function run() {
+        let sql = new MongoDB();
+        await sql.connect();
 
-    // update test
-    // await sql.update('system', {version: "0.2"}, {$set: {version: "0.1"}});
-    // var result = await sql.find('system');
-    // console.log(result);
+        // insert test
+        // await sql.insert('system', {name: "test fs", version: "0.2", update: 00000});
+        // var result = await sql.find('system', {},{sort: {version: -1}});
+        // console.log(result);
 
-    await sql.disconnect();
+        // delete test
+        // await sql.delete('system', {name: "test fs"});
+        // var result = await sql.find('system', {},{sort: {version: -1}});
+        // console.log(result);
+
+        // find test
+        // var result = await sql.find('system', {version: "0.1"}, {projection: {version: 0}});
+        // console.log(result);
+
+        // var result = await sql.find('storage', {"id" : "0b132e59-2bd4-4e4d-9df3-f75034b26fff"}, {projection: {version: 0}});
+        // console.log(result);
+
+        // update test
+        // await sql.update('system', {version: "0.2"}, {$set: {version: "0.1"}});
+        // var result = await sql.find('system');
+        // console.log(result);
+
+        await sql.disconnect();
+    }
+
+    run();
 }
 
 test();

@@ -1,0 +1,49 @@
+<!--
+ * @Author: One_Random
+ * @Date: 2020-08-26 12:36:07
+ * @LastEditors: One_Random
+ * @LastEditTime: 2020-08-26 15:23:12
+ * @FilePath: /FS/html/shell.html
+ * @Description: Copyright © 2020 One_Random. All rights reserved.
+-->
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>shell</title>
+        <script>
+            function getXMLDoc() {
+                var xmlhttp;
+                if (window.XMLHttpRequest)
+                    xmlhttp=new XMLHttpRequest();
+                else {
+                    xmlhttp=new ActiveXObject("Microsoft.XMLHTTP");
+                    windows.alert("Sorry!\nThis type of browser is not supported!");
+                }
+                    
+
+                xmlhttp.onreadystatechange=function() {
+                    if (xmlhttp.readyState==4 && xmlhttp.status==200) {
+                        document.getElementById("result").innerHTML = xmlhttp.responseText;
+                    }
+                    else {
+                        document.getElementById("result").innerHTML = "Sorry!<br>It looks like something has gone wrong!";
+                    }
+                }
+
+                let method = "GET";
+                let url = "/shell/get/" + document.getElementById("input").value;  
+                let async = true;
+
+                xmlhttp.open(method, url, async);
+                xmlhttp.send();
+            }
+        </script>
+    </head>
+    <body>
+        <input id="input" name="input" type="text"/>
+        <button onclick="getXMLDoc();">send</button>
+        <p id="result"></p>
+    </body>
+</html>
