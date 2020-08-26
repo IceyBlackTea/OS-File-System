@@ -2,7 +2,7 @@
  * @Author: One_Random
  * @Date: 2020-08-13 11:59:59
  * @LastEditors: One_Random
- * @LastEditTime: 2020-08-26 15:43:29
+ * @LastEditTime: 2020-08-26 15:53:28
  * @FilePath: /FS/readme.md
  * @Description: Copyright © 2020 One_Random. All rights reserved.
 -->
@@ -54,10 +54,10 @@
 #### 说明
 + 在权限管理上，设备默认用户组与root用户
 + 在数据库直接存储文件的数据与文件(夹)的结构
-
-<details>
++ <details>
     <summary>problem?</summary>
-    ~~直接存储文件到远程机器~~
+
+    ***~~直接存储文件到远程机器~~***
 </details>
 
 ----
@@ -72,7 +72,8 @@
 
 <details>
     <summary>problem?</summary>
-    ~~在服务器机器中直接保存配置信息，优先使用json格式保存数据。~~
+
+***~~在服务器机器中直接保存配置信息，优先使用json格式保存数据。~~***
 </details>
 
 
@@ -82,10 +83,10 @@
 - 原本的题目设计是运行在本地机器命令行中，本项目改进运行在node.js上，可作为网页应用使用
 - 参照传统unix系统进行部分设计
 - 模拟操作系统运行环境，通过ajax发送GET/POST可模拟shell终端，并符合多线程需求
-
-<details>
+- <details>
     <summary>problem?</summary>
-    (x)之后补充
+    
+    ***~~在服务器机器中直接保存配置信息，优先使用json格式保存数据。~~***
 </details>
 
 ----
