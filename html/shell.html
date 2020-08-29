@@ -2,7 +2,7 @@
  * @Author: One_Random
  * @Date: 2020-08-26 12:36:07
  * @LastEditors: One_Random
- * @LastEditTime: 2020-08-26 15:23:12
+ * @LastEditTime: 2020-08-29 22:49:49
  * @FilePath: /FS/html/shell.html
  * @Description: Copyright © 2020 One_Random. All rights reserved.
 -->
@@ -21,19 +21,22 @@
                     xmlhttp=new ActiveXObject("Microsoft.XMLHTTP");
                     windows.alert("Sorry!\nThis type of browser is not supported!");
                 }
-                    
 
-                xmlhttp.onreadystatechange=function() {
-                    if (xmlhttp.readyState==4 && xmlhttp.status==200) {
-                        document.getElementById("result").innerHTML = xmlhttp.responseText;
-                    }
-                    else {
-                        document.getElementById("result").innerHTML = "Sorry!<br>It looks like something has gone wrong!";
+                xmlhttp.onreadystatechange = () => {
+                    if (xmlhttp.readyState == 4) {
+                        if (xmlhttp.status == 200) {
+                            document.getElementById("result").innerHTML += document.getElementById("input").value + "<br>" + xmlhttp.responseText + "<br>";
+                            document.getElementById("input").value = "";
+                        }
+                        else {
+                            document.getElementById("result").innerHTML += "Sorry!<br>It looks like something has gone wrong!<br>";
+                        }
                     }
                 }
 
                 let method = "GET";
-                let url = "/shell/get/" + document.getElementById("input").value;  
+                let cmd = document.getElementById("input").value.replace(/\s+/g,"/");
+                let url = "/shell/get/" + cmd;  
                 let async = true;
 
                 xmlhttp.open(method, url, async);

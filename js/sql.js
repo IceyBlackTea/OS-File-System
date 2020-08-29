@@ -2,7 +2,7 @@
  * @Author: One_Random
  * @Date: 2020-08-23 23:04:14
  * @LastEditors: One_Random
- * @LastEditTime: 2020-08-26 11:44:22
+ * @LastEditTime: 2020-08-27 11:51:44
  * @FilePath: /FS/js/sql.js
  * @Description: Copyright © 2020 One_Random. All rights reserved.
  */
@@ -93,7 +93,7 @@ class MongoDB {
     /**
      * @name: find
      * @description: database operation, async function; 
-     *               use like: var result = await MongoDB.find(collection_name, {}, {proejction: {}});
+     *               use like: var result = await MongoDB.find(collection_name, {}, {projection: {}});
      * @param {string, json, json}
      *  collection_name
      *  query
