@@ -1,0 +1,72 @@
+<!--
+ * @Author: One_Random
+ * @Date: 2020-08-13 00:06:56
+ * @LastEditors: One_Random
+ * @LastEditTime: 2020-08-31 15:50:06
+ * @FilePath: /FS/html/login.html
+ * @Description: Copyright © 2020 One_Random. All rights reserved.
+--> 
+<!DOCTYPE html>
+<html lang="en">
+    <head></head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>index</title>
+        <style>
+        </style>
+        <script>
+            function XMLHTTP() {
+                let xmlhttp;
+                if (window.XMLHttpRequest)
+                    xmlhttp=new XMLHttpRequest();
+                else {
+                    xmlhttp=new ActiveXObject("Microsoft.XMLHTTP");
+                    windows.alert("Sorry!\nThis type of browser is not supported!");
+                }
+
+                return xmlhttp;
+            }
+
+            function postXMLDoc() {
+                let xmlhttp = XMLHTTP();
+
+                xmlhttp.onreadystatechange = () => {    
+                    if (xmlhttp.readyState == 4) {
+                        if (xmlhttp.status == 200) {
+                            window.alert("Login successfully!"); 
+                            window.location = "./shell";
+                        }
+                        else if (xmlhttp.status == 401){
+                            window.alert("Login failed!");
+                        }
+                        else {
+                            
+                        }
+                    }
+                }
+
+                let method = "POST";
+                let url = "/login";  
+                let username = document.getElementById("username").value;
+                let password = document.getElementById("password").value;
+                let async = true;
+
+                let obj = {
+                    "username": username,
+                    "password": password,
+                };
+
+                console.log(obj);
+
+                xmlhttp.open(method, url, async);
+                xmlhttp.send(JSON.stringify(obj));
+            }
+        </script>
+    </head>
+    <body>
+        <span>username: </span><input id="username" name="username" type="text"/>
+        <br>
+        <span>password: </span><input id="password" name="input" type="text"/>
+        <button onclick="postXMLDoc();">login</button>
+    </body>
+</html>

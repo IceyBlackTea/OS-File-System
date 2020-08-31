@@ -2,7 +2,7 @@
  * @Author: One_Random
  * @Date: 2020-08-13 11:59:59
  * @LastEditors: One_Random
- * @LastEditTime: 2020-08-26 15:53:28
+ * @LastEditTime: 2020-08-31 08:42:55
  * @FilePath: /FS/readme.md
  * @Description: Copyright © 2020 One_Random. All rights reserved.
 -->
@@ -54,6 +54,7 @@
 #### 说明
 + 在权限管理上，设备默认用户组与root用户
 + 在数据库直接存储文件的数据与文件(夹)的结构
++ 登录使用cookie配合，同一浏览器默认同时一个用户使用
 + <details>
     <summary>problem?</summary>
 

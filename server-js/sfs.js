@@ -2,12 +2,11 @@
  * @Author: One_Random
  * @Date: 2020-08-13 00:08:42
  * @LastEditors: One_Random
- * @LastEditTime: 2020-08-29 23:30:12
- * @FilePath: /FS/js/sfs.js
+ * @LastEditTime: 2020-08-31 16:26:03
+ * @FilePath: /FS/server-js/sfs.js
  * @Description: Copyright © 2020 One_Random. All rights reserved.
  */
 const sql_client = require('./sql.js');
-const sql = require('./sql.js');
 
 // fs_system.js
 /*
@@ -81,7 +80,7 @@ class System {
 
         await this.setup_system();
         await this.setup_storage();
-        // this.setup_groups();
+        await this.setup_users();
 
         await sql_client.disconnect();
     }
@@ -130,92 +129,116 @@ class System {
         }
     }
 
+    async setup_users() {
+        this.users = (await sql_client.find('users', {}, {projection: {"_id": 0, "password": 0}}));
+    }
+
     print_system_info() {
         this.log.print("system name: " + this.name);
         this.log.print("system version: " + this.version);
         this.log.print("update time: " + new Date(parseInt(this.update) * 1000).toLocaleString().replace(/:\d{1,2}$/,' '));
     }
 
-    list(dir) {
-        for (let i = 0; i < dir.folders.length; i++) {
-            let folder_name = dir.folders[i].name;
-            this.log.push(folder_name);
-        }
-
-        for (let i = 0; i < dir.files.length; i++) {
-            let file_name = dir.files[i].name;
-            this.log.push(file_name);
-        }
-    }
-
-    check_permission() {};
-
-    new_shell(user) {
-        let ID = "";
-        let user_dir = "";
-        let shell = new Shell(ID, user, user_dir);
-        this.shells.push(shell);
-    }
-
-    delete_shell(shell_ID) {
-        for (let i = 0; i < this.shelss.length; i++) {
-            if (this.shells[i].ID = shell_ID){
-                this.shells.splice(i, 1);
-                
+    async authenticate(username, password) {
+        let user = null;
+        for (let i = 0; i < this.users.length; i++) {
+            if (this.users[i].name == username) {
+                user = await this.users[i];
                 break;
             }
         }
-    }
 
-    new_group(group_name) {
-        let group_ID = ""; // Random Generate ID
+        if (user != null) {
+            await sql_client.connect();
+            let password_md5 = (await sql_client.find("users", {ID: user.ID}, {projection: {"password": 1}}))[0].password;
+            await sql_client.disconnect();
 
-        let new_group = new Group(group_ID, group_name);
-        
-        this.groups.push(new_group);
-
-        // store
-
-        // log
-    }
-
-    delete_group(group_ID) {
-        // warning
-        // if delete the group, the user of the group will also be deteled.
-
-        if (group_ID == system.ROOT_GROUP || group_ID == system.DEFAULT_GROUP) {
-            // error, can't delete
             
-            return;
-        }
-
-        for (let i = 2; i < this.groups.length; i++) {
-            if (this.groups[i].ID = group_ID) {
-                // if user is using
-                if (this.groups[i].state == System.ONLINE) {
-                    // error, can't delete
-
-                    return;
-                }
-
-                // delete users
-                this.groups[i].remove_all_users();
-
-                // delete the group
-                this.groups.splice(i, 1);
-                
-                // log
-                
-                break;
+            if (password == password_md5) {
+                return user;
             }
         }
+
+        return null;
+    }
+
+    async get_shell(uuid) {
+        let shell = null;
+        for (let i = 0; i < this.shells.length; i++) {
+            if (this.shells[i].max_age < Date.parse(new Date()) / 1000) {
+                // too old
+                this.shells.splice(i, 1);
+                i -= 1;
+            }
+            else {
+                if (this.shells[i].ID == uuid) {
+                    shell = await this.shells[i];
+                    break;
+                }
+            }
+        }
+
+        return shell;
+    }
+
+    async new_shell(username, password) {
+        let user = await this.authenticate(username, password);
+        if (user != null) {
+            let ts = Date.parse(new Date()) / 1000 + 24 * 3600;
+            let shell = new Shell(UUID(), user.name, user.user_dir, ts);
+            this.shells.push(shell);
+
+            return shell.ID;
+        }
+        return null;
+    }
+
+    delete_shell(uuid) {
+        for (let i = 0; i < this.shells.length; i++) {
+            if (this.shells[i].max_age < Date.parse(new Date()) / 1000) {
+                // too old
+                this.shells.splice(i, 1);
+                i -= 1;
+            }
+            else {
+                if (this.shells[i].ID == uuid) {
+                    this.shells.splice(i, 1);
+                    i -= 1;
+                }
+            }
+        }
+    }
+
+    async list(dir) {
+        let parent = await this.find_folder_by_dir(dir);
+        console.log(parent);
+        for (let i = 0; i < parent.folders.length; i++) {
+            this.log.push(await parent.folders[i].name);
+        }
+
+        for (let i = 0; i < parent.files.length; i++) {
+            this.log.push(await parent.files[i].name);
+        }
+    }
+
+    async change_dir(shell, dir, name) {
+        let parent = await this.find_folder_by_dir(dir);
+        for (let i = 0; i < parent.folders.length; i++) {
+            if (parent.folders[i].name == "/" + name) {
+                // change
+
+                return true;
+            }
+        }
+
+        return false;
     }
 
     new_user(user_name) {
         let user_ID = ""; // // Random Generate ID
         let new_user = new User(user_ID, user_name);
 
-        this.groups[1].append_user(new_user);
+        // >>>
     }
 
     // ???
@@ -262,7 +285,7 @@ class System {
 
         //permission
 
-        let ts= Date.parse(new Date()) / 1000;
+        let ts = Date.parse(new Date()) / 1000;
         let folder = new Folder(UUID(), parent.ID, name, ts, null);
         parent.folders.push(folder);
 
@@ -295,7 +318,7 @@ class System {
 
         return true;
     };
-    
+
     delete_file() {};
 
     move_folder() {};
@@ -306,18 +329,12 @@ class System {
  * SHELL的类
  */
 class Shell {
-    constructor(ID, user, user_dir) {
+    constructor(ID, username, user_dir, max_age) {
         this.ID = ID;
-        this.user = user;
+        this.username = username;
         this.dir = user_dir;
 
-        this.print('Shell 1.0');
-    }
-
-    check_permission() {}
-
-    print(message) {
-        console.log(message);
+        this.max_age = max_age;
     }
 }
 
@@ -369,47 +386,10 @@ class Log {
 // fs_user.js
 
 /*
- * 用户组的类
- */
-class Group {
-    constructor(ID, group_name) {
-        this.ID = ID;
-        this.name = group_name;
-        this.users = new Array();
-
-        this.state = System.OFFLINE;
-    }
-
-    append_user(user) {
-        this.users.push(user);
-
-        // log
-    }
-
-    remove_user(user_ID) {
-        for (let i = 0; i < this.users.length; i++) {
-            if (this.users[i].ID = user_ID) {
-                this.users.splice(i, 1);
-                
-                // log
-                
-                break;
-            }
-        }
-    }
-
-    remove_all_users() {
-        // log
-        
-        this.users.length = 0;
-    }
-}
-
-/*
  * 用户的类
  */
 class User {
-    constructor(ID, name, group_ID) {
+    constructor(ID, name) {
         this.ID = ID;      // ID
         this.name = name;    // 名称
         this.group_ID = group_ID; // 用户组
@@ -525,7 +505,6 @@ function UUID() {
 module.exports = {
     System: System,
     Shell: Shell,
-    Group: Group,
     User: User,
     Permission: Permission,
     File: File,
