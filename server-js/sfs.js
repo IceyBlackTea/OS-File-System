@@ -2,7 +2,7 @@
  * @Author: One_Random
  * @Date: 2020-08-13 00:08:42
  * @LastEditors: One_Random
- * @LastEditTime: 2020-08-31 16:26:03
+ * @LastEditTime: 2020-08-31 16:57:58
  * @FilePath: /FS/server-js/sfs.js
  * @Description: Copyright © 2020 One_Random. All rights reserved.
  */
@@ -181,11 +181,11 @@ class System {
         return shell;
     }
 
-    async new_shell(username, password) {
+    async new_shell(username, password, ip) {
         let user = await this.authenticate(username, password);
         if (user != null) {
             let ts = Date.parse(new Date()) / 1000 + 24 * 3600;
-            let shell = new Shell(UUID(), user.name, user.user_dir, ts);
+            let shell = new Shell(UUID(), user.name, user.user_dir, ts, ip);
             this.shells.push(shell);
 
             return shell.ID;
@@ -329,12 +329,13 @@ class System {
  * SHELL的类
  */
 class Shell {
-    constructor(ID, username, user_dir, max_age) {
+    constructor(ID, username, user_dir, max_age, ip) {
         this.ID = ID;
         this.username = username;
         this.dir = user_dir;
 
         this.max_age = max_age;
+        this.ip = ip;
     }
 }
 

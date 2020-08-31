@@ -2,7 +2,7 @@
  * @Author: One_Random
  * @Date: 2020-08-23 11:17:12
  * @LastEditors: One_Random
- * @LastEditTime: 2020-08-31 16:32:19
+ * @LastEditTime: 2020-08-31 17:12:26
  * @FilePath: /FS/main.js
  * @Description: Copyright © 2020 One_Random. All rights reserved.
  */
@@ -27,7 +27,7 @@ app.get('/shell', async (req, res) => {
     console.log(system.shells);
     let uuid = req.cookies.UUID;
     if (uuid == undefined) {
-        res.status('401').send("<script type=\"text/javascript\">window.location=\"./login\"</script>\");");
+        res.status('401').send("<script type=\"text/javascript\">window.location=\"./login\";</script>");
         res.end();
     }
     else {
@@ -35,7 +35,7 @@ app.get('/shell', async (req, res) => {
         
         if (shell == null) {
             res.cookie('UUID', '', {maxAge: 0, httpOnly: true});
-            res.status('401').send("<script type=\"text/javascript\">window.alert(\"Authentication has expired!\nPlease login again!\"); window.location=\"./login\"</script>\");");
+            res.status('401').send("<script type=\"text/javascript\">window.alert(\"Authentication has expired!" + "\\n" + "Please login again!\");" + "\n" + "window.location=\"./login\";</script>");
             res.end();
         }
         else {
@@ -48,7 +48,7 @@ app.get('/shell', async (req, res) => {
 
 app.get('/login', (req, res) => {
     if (req.cookies.UUID != undefined) {
-        res.status('200').send("<script type=\"text/javascript\">window.alert(\"You have logged in!\"); window.location=\"./shell\"</script>\");");
+        res.status('200').send("<script type=\"text/javascript\">window.alert(\"You have logged in!\");" + "\\n" + "window.location=\"./shell\";</script>");
         res.end();
     }
     else 
@@ -61,8 +61,9 @@ app.post('/login', (req, res) => {
         let obj = JSON.parse(data);
         let username = obj.username;
         let password_md5 = require('blueimp-md5')(obj.password);
+        let ip = req.ip;
 
-        let uuid = await system.new_shell(username, password_md5);
+        let uuid = await system.new_shell(username, password_md5, req.ip);
 
         // console.log('username', username);
         // console.log('password_md5', password_md5);
