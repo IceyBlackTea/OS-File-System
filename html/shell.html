@@ -2,7 +2,7 @@
  * @Author: One_Random
  * @Date: 2020-08-26 12:36:07
  * @LastEditors: One_Random
- * @LastEditTime: 2020-08-31 17:05:00
+ * @LastEditTime: 2020-09-01 15:19:13
  * @FilePath: /FS/html/shell.html
  * @Description: Copyright © 2020 One_Random. All rights reserved.
 -->
@@ -31,7 +31,7 @@
                 xmlhttp.onreadystatechange = () => {
                     if (xmlhttp.readyState == 4) {
                         if (xmlhttp.status == 200) {
-                            document.getElementById("result").innerHTML += document.getElementById("input").value + "<br>" + xmlhttp.responseText + "<br>";
+                            document.getElementById("result").innerHTML += document.getElementById("input").value + "<br>" + xmlhttp.responseText;
                             document.getElementById("input").value = "";
                         }
                         else {
@@ -60,7 +60,10 @@
                                 location.reload();
                             }
                             else {
-                                document.getElementById("result").innerHTML += document.getElementById("input").value + "<br>" + xmlhttp.responseText + "<br>";
+                                let recv_obj = JSON.parse(xmlhttp.responseText);
+                                document.getElementById("result").innerHTML += document.getElementById("input").value + "<br>" 
+                                                                            + recv_obj.message + "<br>"
+                                                                            + recv_obj.username + "@sfs:" + recv_obj.dir + "# ";
                                 document.getElementById("input").value = "";
                             } 
                         }
@@ -92,7 +95,7 @@
             }
         </script>
     </head>
-    <body>
+    <body onload="postXMLDoc();">
         <input id="input" name="input" type="text"/>
         <!-- <button onclick="getXMLDoc();">get</button> -->
         <button onclick="postXMLDoc();">post</button>

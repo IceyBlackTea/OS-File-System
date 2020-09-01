@@ -2,14 +2,15 @@
  * @Author: One_Random
  * @Date: 2020-08-23 11:17:12
  * @LastEditors: One_Random
- * @LastEditTime: 2020-08-31 17:12:26
+ * @LastEditTime: 2020-09-01 16:10:07
  * @FilePath: /FS/main.js
  * @Description: Copyright © 2020 One_Random. All rights reserved.
  */
 
 const express = require('express');
-var cookieParser = require('cookie-parser')
 const app = express();
+
+const cookieParser = require('cookie-parser')
 app.use(cookieParser());
 
 const sfs = require('./server-js/sfs.js');
@@ -61,16 +62,10 @@ app.post('/login', (req, res) => {
         let obj = JSON.parse(data);
         let username = obj.username;
         let password_md5 = require('blueimp-md5')(obj.password);
-        let ip = req.ip;
 
         let uuid = await system.new_shell(username, password_md5, req.ip);
 
-        // console.log('username', username);
-        // console.log('password_md5', password_md5);
-
         if (uuid != null) {
-            // new shell
-            // cookie
             res.cookie('UUID', uuid, {maxAge: 24 * 3600 * 1000, httpOnly: true});
             res.status('200').send();
         }
@@ -90,7 +85,7 @@ app.post('/shell/post', (req, res) => {
             res.status('401').send();
         }
         else {
-            let shell = system.get_shell(uuid);
+            let shell = await system.get_shell(uuid);
             if (shell == null) {
                 res.cookie('UUID', '', {maxAge: 0, httpOnly: true});
                 res.status('401').send();
@@ -98,10 +93,45 @@ app.post('/shell/post', (req, res) => {
             else {
                 let obj = JSON.parse(data);
                 let cmd = obj.cmd;
-                if (cmd == 'exit') {
+                let args = obj.args;
+
+                if (cmd == '') {
+                    system.log.send(shell, res);
+                }
+
+                else if (cmd == 'exit') {
                     system.delete_shell(uuid);
                     res.cookie('UUID', '', {maxAge: 0, httpOnly: true});
                     res.status('200').send("log out");
+                }
+
+                else if (cmd == 'mkdir') {
+                    let folder_name = args[0];
+                    await system.new_folder(shell.username, shell.dir, folder_name);
+                    system.log.send(shell, res);
+                }
+
+                else if (cmd == 'rm') {
+                    if (args[0] == '-r') {
+                        let dest_name = args[1];
+                        await system.delete_folder(shell.username, shell.dir, dest_name);
+                        system.log.send(shell, res);
+                    }
+                }
+
+                else if (cmd == 'ls') {
+                    await system.list(shell);
+                    system.log.send(shell, res);
+                }
+                
+                else if (cmd == 'cd') {
+                    let dest_foder = args[0];
+                    await system.change_dir(shell, dest_foder);
+                    system.log.send(shell, res);
+                }
+                else {
+                    await system.log.push(cmd + ': command not found');
+                    system.log.send(shell, res);
                 }
             }
         }

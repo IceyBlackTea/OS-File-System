@@ -2,7 +2,7 @@
  * @Author: One_Random
  * @Date: 2020-08-13 00:08:42
  * @LastEditors: One_Random
- * @LastEditTime: 2020-08-31 16:57:58
+ * @LastEditTime: 2020-09-01 16:19:31
  * @FilePath: /FS/server-js/sfs.js
  * @Description: Copyright © 2020 One_Random. All rights reserved.
  */
@@ -16,7 +16,11 @@ class System {
     constructor() {
         // const
         this.FILE = 0;
-        this.DIR = 1;
+        this.FOLDER = 1;
+
+        this.EXECUTE = 1;
+        this.WRITE = 2;
+        this.READ = 4;
         
         this.OFFLINE = 0;
         this.ONLINE = 1;
@@ -24,16 +28,9 @@ class System {
         this.FREE = 0;
         this.USING = 1;
 
-        this.ROOT_GROUP = 0;
-        this.DEFAULT_GROUP = 1;
-
         this.ROOT_USER = 0;
 
         this.POWEROFFF = 0;     // power off
-
-        this.GROUPADD = 11;     // groupadd
-        this.GROUPMODIFY = 12;  // groupmod
-        this.GOURPDELETE = 13;  // groupdel 
         
         this.USERADD = 21;      // useradd
         this.USERMODIFY = 22;   // usermod
@@ -153,7 +150,6 @@ class System {
             let password_md5 = (await sql_client.find("users", {ID: user.ID}, {projection: {"password": 1}}))[0].password;
             await sql_client.disconnect();
 
-            
             if (password == password_md5) {
                 return user;
             }
@@ -209,9 +205,14 @@ class System {
         }
     }
 
-    async list(dir) {
-        let parent = await this.find_folder_by_dir(dir);
-        console.log(parent);
+    async list(shell) {
+        let parent = await this.find_folder_by_dir(shell.username, shell.dir);
+
+        if (parent == null) {
+            this.log.push("cd: " + shell.dir + ": No such file or directory");
+            return false;
+        }
+
         for (let i = 0; i < parent.folders.length; i++) {
             this.log.push(await parent.folders[i].name);
         }
@@ -221,73 +222,145 @@ class System {
         }
     }
 
-    async change_dir(shell, dir, name) {
-        let parent = await this.find_folder_by_dir(dir);
-        for (let i = 0; i < parent.folders.length; i++) {
-            if (parent.folders[i].name == "/" + name) {
-                // change
-
-                return true;
-            }
+    async change_dir(shell, dest_path) {
+        let path = dest_path;
+        let work_dirs = shell.dir;
+        let username = shell.username;
+        
+        if ((dest_path[0] == '.' && dest_path[1] == '/') || (dest_path == ".")) {
+            dest_path = work_dirs + dest_path.substring(1);
         }
+        else if ((dest_path[0] == '.' && dest_path[1] == '.' && dest_path[2] == '/') || (dest_path == "..")) {
+            dest_path = work_dirs.substring(0, work_dirs.lastIndexOf('/')) + dest_path.substring(2);
+        }
+        else if (dest_path[0] != '/') {
+            if (work_dirs == '/') 
+                dest_path = work_dirs + dest_path;
+            else 
+                dest_path = work_dirs + '/' + dest_path;
+        }
+        
 
-        return false;
+        let folder = await this.find_folder_by_dir(username, dest_path);
+        if (folder != null) {
+            shell.dir = dest_path;
+            return true;
+        }
+        else {
+            this.log.push("cd: " + path + ": No such file or directory");
+            return false;
+        }
+            
     }
 
-    new_user(user_name) {
-        let user_ID = ""; // // Random Generate ID
-        let new_user = new User(user_ID, user_name);
+    async new_user(user_name) {
+        // let user_ID = ""; // // Random Generate ID
+        // let new_user = new User(user_ID, user_name);
 
         // >>>
     }
 
     // ???
     delete_user(user_ID) {
-        // warning
-        // if delete the group, the user of the group will also be deteled.
+        // // warning
 
-        if (user_ID == system.ROOT_USER) {
-            // error, can't delete
+        // if (user_ID == system.ROOT_USER) {
+        //     // error, can't delete
             
-            return;
-        }
+        //     return;
+        // }
 
     }
 
-    change_group(user_ID) {};
+    async find_folder_by_dir(username, path) {            
+        let dirs = path.split('/');
+        if (dirs[dirs.length-1] == '')
+            dirs.pop();
 
-    async find_folder_by_dir(dir) {
-        let dirs =  dir.split("/");
         let folder = this.device;
+
         for (let i = 1; i < dirs.length; i++) {
+            let flag = false;
             for (let j = 0; j < folder.folders.length; j++) {
                 if (folder.folders[j].name == "/" + dirs[i]) {
                     folder = await folder.folders[j];
+                    flag = true;
                     break;
                 }
+            }
+            if (!flag) {
+                return null;
             }
         }
         
         return folder;
     }
 
-    async new_folder(user, dir, name) {
-        name = "/" + name;
-        let parent = await this.find_folder_by_dir(dir);
+    async find_parent_child_by_dir(username, path) {
+        let dirs = path.split('/');
+        if (dirs[dirs.length-1] == '')
+            dirs.pop();
+        let child = dirs[dirs.length-1];
+            
+        let folder = this.device;
+
+        for (let i = 1; i < dirs.length - 1; i++) {
+            let flag = false;
+            for (let j = 0; j < folder.folders.length; j++) {
+                if (folder.folders[j].name == "/" + dirs[i]) {
+                    folder = await folder.folders[j];
+                    flag = true;
+                    break;
+                }
+            }
+            if (!flag) {
+                return null;
+            }
+        }
         
-        let folders = parent.folders;
+        return {
+            parent: folder,
+            child_name: child
+        };
+    }
+
+    async new_folder(username, work_dirs, dest_path) {
+        if ((dest_path[0] == '.' && dest_path[1] == '/') || (dest_path == ".")) {
+            dest_path = work_dirs + dest_path.substring(1);;
+        }
+        else if ((dest_path[0] == '.' && dest_path[1] == '.' && dest_path[2] == '/') || (dest_path == "..")) {
+            dest_path = work_dirs.substring(0, work_dirs.lastIndexOf('/')) + dest_path.substring(2);
+        }
+        else if (dest_path[0] != '/') {
+            if (work_dirs == '/') 
+                dest_path = work_dirs + dest_path;
+            else 
+                dest_path = work_dirs + '/' + dest_path;
+        }
+        
+        let dest = await this.find_parent_child_by_dir(username, dest_path);
+        if (dest == null) {
+            this.log.push("rm: " + dest.child_name + ": No such file or directory");
+            return false;
+        } 
+
+        let folders = dest.parent.folders;
         for (let i = 0; i < folders.length; i++) {
-            if (folders[i].name == name) {
-                this.log.print('already have');
+            if (folders[i].name == '/' + dest.child_name) {
+                // this.log.print('already existed');
+                this.log.push("mkdir: " + dest.child_name + ": File exists");
                 return false;
             }
         }
-
+        
         //permission
+        //console.log(this.set_privilege(System.FOLDER, 7, 0));
+        let permission = new Permission(username, this.set_privilege(System.FOLDER, 7, 0));
 
         let ts = Date.parse(new Date()) / 1000;
-        let folder = new Folder(UUID(), parent.ID, name, ts, null);
-        parent.folders.push(folder);
+        let folder = new Folder(UUID(), dest.parent.ID, '/' + dest.child_name, ts, permission);
+        
+        dest.parent.folders.push(folder);
 
         await sql_client.connect();
         await sql_client.insert("storage", folder.db_json());
@@ -297,32 +370,100 @@ class System {
     };
     new_file() {};
 
-    async delete_folder(user, dir, name) {
-        name = "/" + name;
-        let parent = await this.find_folder_by_dir(dir);
-        
+    async delete_folder(username, work_dirs, dest_path) {
+        if (dest_path == '.' || dest_path == "..") {
+            this.log.push("rm: \".\" and \"..\" may not be removed");
+            return false;
+        }
+        if (dest_path[0] == '.' && dest_path[1] == '/') {
+            dest_path = work_dirs + dest_path.substring(1);;
+        }
+        else if (dest_path[0] == '.' && dest_path[1] == '.' && dest_path[2] == '/') {
+            dest_path = work_dirs.substring(0, work_dirs.lastIndexOf('/')) + dest_path.substring(2);
+        }
+        else if (dest_path[0] != '/') {
+            if (work_dirs == '/') 
+                dest_path = work_dirs + dest_path;
+            else 
+                dest_path = work_dirs + '/' + dest_path;
+        }
+
         //permission
-        let folder = null;
-        for (let i = 0; i < parent.folders.length; i++) {
-            if (parent.folders[i].name == name) {
-                folder = await parent.folders[i];
-                parent.folders.splice(i, 1);
+        let dest = await this.find_parent_child_by_dir(username, dest_path);
+        if (dest == null) {
+            this.log.push("rm: " + dest.child_name + ": No such file or directory");
+            return false;
+        }
+
+        let folder = null; 
+        let folders = dest.parent.folders;
+        for (let i = 0; i < folders.length; i++) {
+            if (folders[i].name == '/' + dest.child_name) {
+                folder = await folders[i];
+                folders.splice(i, 1);
                 break;
             }
         }
 
-        await sql_client.connect();
-        await sql_client.delete("storage", {ID: folder.ID});
-        await sql_client.delete("storage", {parent: folder.ID});
-        await sql_client.disconnect();
+        if (folder != null) {
+            await sql_client.connect();
+            await sql_client.delete("storage", {ID: folder.ID});
+            await sql_client.delete("storage", {parent: folder.ID});
+            await sql_client.disconnect();
 
-        return true;
+            return true;
+        }
+        else {
+            this.log.push("rm: " + dest.child_name + ": No such file or directory");
+            return false;
+        }
     };
 
     delete_file() {};
 
     move_folder() {};
     move_file() {};
+
+    set_privilege(type, user = 7, other = 7) {
+        let str = "";
+        if (type == System.FOLDER)
+            str = "d";
+        else if (type == System.FILE)
+            str = "-";
+        else
+            return null;
+
+        if ((user > 7 || user < 0) || (other > 7 || other < 0))
+            return null;
+            
+        return (str + this.sub_privilege(user) + this.sub_privilege(other));
+    }
+
+    sub_privilege(privilege) {
+        let str = ""
+        if (privilege & System.READ == System.READ) {
+            str += "r";
+        }
+        else {
+            str += "-"
+        }
+
+        if (privilege & System.WRITE == System.WRITE) {
+            str += "w";
+        }
+        else {
+            str += "-";
+        }
+
+        if (privilege & System.EXECUTE == System.EXECUTE) {
+            str += "x";
+        }
+        else {
+            str += "-";
+        }
+
+        return str;
+    }
 }
 
 /*
@@ -332,6 +473,7 @@ class Shell {
     constructor(ID, username, user_dir, max_age, ip) {
         this.ID = ID;
         this.username = username;
+        this.user_dir = user_dir;
         this.dir = user_dir;
 
         this.max_age = max_age;
@@ -351,7 +493,7 @@ class Log {
         console.log(message);
     }
 
-    push(message) {
+    async push(message) {
         this.send_buffers.push(message.toString());
     }
 
@@ -359,26 +501,33 @@ class Log {
         this.send_buffers.length = 0;
     }
 
-    send(res) {
-        this.sendAll(res);
+    async send(shell, res) {
+        await this.sendAll(shell, res);
     }
 
     save() {
         
     }
 
-    async sendOne(res) {
+    async sendOne(shell, res) {
         await res.status("200").send(this.send_buffers[0] + "<br>");
         this.send_buffers.splice(0, 1);
     }
 
-    async sendAll(res) {
-        let message = "";
+    async sendAll(shell, res) {
+        let message = "<br>";
         for (let i = 0; i < this.send_buffers.length; i++) {
             message += this.send_buffers[i] + "<br>";
         }
+        //message += shell.username + '@sfs:' + shell.dir + '#';
 
-        await res.status("200").send(message);
+        let obj = {
+            username: shell.username,
+            dir: shell.dir,
+            message: message
+        }
+
+        await res.status("200").send(JSON.stringify(obj));
         this.clear();
     }
 }
@@ -393,7 +542,6 @@ class User {
     constructor(ID, name) {
         this.ID = ID;      // ID
         this.name = name;    // 名称
-        this.group_ID = group_ID; // 用户组
 
         this.state = System.OFFLINE;
         // this.password = null; // 密码
@@ -405,15 +553,17 @@ class User {
  * 权限管理的类
  */
 class Permission {
-    constructor() {
-        this.INVISIBLE = 0;
-        
-        this.EXECUTE = 1;
-        this.WRITE = 2;
-        this.READ = 4;
+    constructor(username, privilege) {
+        // this.INVISIBLE = 0;
+        this.owner = username; // user other all
+        this.privilege = privilege; 
+    }
 
-        this.owner; // user group other all
-        this.privilege;
+    db_json() {
+        return {
+            owner: this.owner,
+            privilege: this.privilege
+        };
     }
 }
 
@@ -423,7 +573,7 @@ class Permission {
  *  基础存储的类
  */
 class Binary {
-    constructor(ID, parent, name, created_time = 0, permissions = null) {
+    constructor(ID, parent, name, created_time = 0, permissions) {
         this.ID = ID;       // 标识
         this.parent = parent; // 父文件夹
 
@@ -443,7 +593,7 @@ class Binary {
  * 文件的类
  */
 class File extends Binary {
-    constructor(ID, parent, name, created_time = 0, permissions = null, size, data) {
+    constructor(ID, parent, name, created_time = 0, permissions, size, data) {
         super(ID, parent, name, created_time, permissions);
         
         // this.extension = extension;     // 扩展名
@@ -459,10 +609,10 @@ class File extends Binary {
             name: this.name,
             created_time: this.created_time,
             modified_time: this.created_time,
-            permissions: null,
+            permissions: this.permissions.db_json(),
             size: this.size,
             data: data
-        }
+        };
     }
 }
 
@@ -470,7 +620,7 @@ class File extends Binary {
  * 文件夹的类
  */
 class Folder extends Binary {
-    constructor(ID, parent, name, created_time = 0, permissions = null) {
+    constructor(ID, parent, name, created_time = 0, permissions) {
         super(ID, parent, name, created_time, permissions); // 继承自Binary类
 
         this.folders = new Array();   // 子文件夹
@@ -483,8 +633,8 @@ class Folder extends Binary {
             parent: this.parent,
             name: this.name,
             created_time: this.created_time,
-            permissions: null
-        }
+            permissions: this.permissions.db_json()
+        };
     }
 }
 
