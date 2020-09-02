@@ -2,7 +2,7 @@
  * @Author: One_Random
  * @Date: 2020-08-13 11:59:59
  * @LastEditors: One_Random
- * @LastEditTime: 2020-08-31 08:42:55
+ * @LastEditTime: 2020-09-02 14:26:30
  * @FilePath: /FS/readme.md
  * @Description: Copyright © 2020 One_Random. All rights reserved.
 -->
@@ -28,28 +28,32 @@
 1. 系统管理
    + 使用命令进行控制
    + 支持多用户
-   + 日志管理
+   + 日志管理(优先级低)
 2. 文件管理
    + 基本操作: 创建、删除、读写
    + 支持文件夹嵌套 (树状结构目录)
    + 获取文件(夹)信息
 3. 权限管理
    + 权限控制: 运行、读取、写入
-   + 用户分类管理: 拥有者, 用户组, 其他
+   + 用户分类管理: 拥有者, 其他
 
 #### 类
 1. 系统管理
     + System类 运行的系统实例是唯一的
     + Shell类  每个用户每次生成一个Shell实例与系统交互
-    + Log类    每次生成System实例后用以记录日志
+    + Log类    每次生成System实例后用以记录日志,发送消息
 2. 文件管理
     + Binary类 文件存储的基类
     + File类   文件
     + Folder类 文件夹
 3. 权限管理
-    + Group类 用户组
     + User类  用户
     + Permission类 权限
+    + <details>
+    <summary>problem?</summary>
+
+    ***~~Group类 用户组~~***
+</details>
 
 #### 说明
 + 在权限管理上，设备默认用户组与root用户
@@ -83,17 +87,17 @@
 ### 其他
 - 原本的题目设计是运行在本地机器命令行中，本项目改进运行在node.js上，可作为网页应用使用
 - 参照传统unix系统进行部分设计
-- 模拟操作系统运行环境，通过ajax发送GET/POST可模拟shell终端，并符合多线程需求
+- 模拟操作系统运行环境，通过ajax发送GET/POST可模拟shell终端，并符合多用户使用需求
 - <details>
     <summary>problem?</summary>
     
     ***~~在服务器机器中直接保存配置信息，优先使用json格式保存数据。~~***
 </details>
 
-----
+<!-- ----
 
 ### 日志
 + 8.13 建立项目，开始设计
 + 8.15 设计后端类与数据结构，编写readme文档
 + 8.24 整理文件结构，编写数据库接口
-+ 8.26 (放弃编写tcp服务端)编写简单ajax接口，通过页面发送命令，接受结果。
++ 8.26 (放弃编写tcp服务端)编写简单ajax接口，通过页面发送命令，接受结果。 -->

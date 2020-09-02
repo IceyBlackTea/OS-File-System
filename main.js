@@ -2,7 +2,7 @@
  * @Author: One_Random
  * @Date: 2020-08-23 11:17:12
  * @LastEditors: One_Random
- * @LastEditTime: 2020-09-01 16:10:07
+ * @LastEditTime: 2020-09-02 21:21:35
  * @FilePath: /FS/main.js
  * @Description: Copyright © 2020 One_Random. All rights reserved.
  */
@@ -16,7 +16,7 @@ app.use(cookieParser());
 const sfs = require('./server-js/sfs.js');
 const system = new sfs.System();
 
-// const path = require('path');
+const path = require('path');
 
 // app.use(express.static(__dirname));
 
@@ -114,7 +114,12 @@ app.post('/shell/post', (req, res) => {
                 else if (cmd == 'rm') {
                     if (args[0] == '-r') {
                         let dest_name = args[1];
-                        await system.delete_folder(shell.username, shell.dir, dest_name);
+                        await system.delete_folder_file(shell.username, shell.dir, dest_name, 'folder');
+                        system.log.send(shell, res);
+                    }
+                    else {
+                        let dest_name = args[0];
+                        await system.delete_folder_file(shell.username, shell.dir, dest_name, 'folder');
                         system.log.send(shell, res);
                     }
                 }
@@ -129,14 +134,53 @@ app.post('/shell/post', (req, res) => {
                     await system.change_dir(shell, dest_foder);
                     system.log.send(shell, res);
                 }
+
+                else if (cmd == 'touch') {
+                    await system.log.push('./file/get/a.txt')
+                    system.log.print('?????');
+                    system.log.send(shell, res, '202');
+                }
+                
+                else if (cmd == 'test') {
+                    await system.test();
+                    system.log.send(shell, res);
+                }
+                else if (cmd =='testb') {
+                    await system.testb();
+                    system.log.send(shell, res);
+                }
+                
                 else {
                     await system.log.push(cmd + ': command not found');
                     system.log.send(shell, res);
                 }
+
             }
         }
         res.end();
     })
+});
+
+app.get('/file/get/:uuid', async (req, res) => {
+    const options = {
+        root: path.join(__dirname),
+        dotfiles: 'deny',
+        headers: {
+          'Content-Type': 'text/html'
+        }
+      };
+    
+    const fileName = req.params.uuid;
+    console.log(fileName);
+    res.sendFile(fileName, options);
+    // res.download(__dirname + '/' + fileName);//, options)//, function (err) {
+    //     if (err) {
+    //       next(err)
+    //     } else {
+    //       console.log('Sent:', fileName)
+    //     }
+    //   })
+    //res.end();
 });
 
 // app.get('/shell/get/:cmd', async (req, res) => {

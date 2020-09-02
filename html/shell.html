@@ -2,7 +2,7 @@
  * @Author: One_Random
  * @Date: 2020-08-26 12:36:07
  * @LastEditors: One_Random
- * @LastEditTime: 2020-09-01 15:19:13
+ * @LastEditTime: 2020-09-02 18:55:22
  * @FilePath: /FS/html/shell.html
  * @Description: Copyright © 2020 One_Random. All rights reserved.
 -->
@@ -54,6 +54,7 @@
 
                 xmlhttp.onreadystatechange = () => {
                     if (xmlhttp.readyState == 4) {
+                        
                         if (xmlhttp.status == 200) {
                             if (xmlhttp.responseText == "log out") {
                                 window.alert("Thanks for using!\nLog out successfully!");
@@ -66,6 +67,13 @@
                                                                             + recv_obj.username + "@sfs:" + recv_obj.dir + "# ";
                                 document.getElementById("input").value = "";
                             } 
+                        }
+                        else if (xmlhttp.status == 202) {
+                            let recv_obj = JSON.parse(xmlhttp.responseText);
+                            document.getElementById("result").innerHTML += document.getElementById("input").value + "<br>" 
+                                                                            + recv_obj.message + "<br>"
+                                                                            + recv_obj.username + "@sfs:" + recv_obj.dir + "# ";
+                            window.open(recv_obj.message);
                         }
                         else if (xmlhttp.status == 401) {
                             window.alert("Authentication has expired!\nPlease login again!"); 
