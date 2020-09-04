@@ -2,7 +2,7 @@
  * @Author: One_Random
  * @Date: 2020-08-13 00:08:42
  * @LastEditors: One_Random
- * @LastEditTime: 2020-09-02 21:20:47
+ * @LastEditTime: 2020-09-04 14:36:43
  * @FilePath: /FS/server-js/sfs.js
  * @Description: Copyright © 2020 One_Random. All rights reserved.
  */
@@ -29,39 +29,6 @@ class System {
         this.EXECUTE = 1;
         this.WRITE = 2;
         this.READ = 4;
-        
-        this.OFFLINE = 0;
-        this.ONLINE = 1;
-
-        this.FREE = 0;
-        this.USING = 1;
-
-        this.ROOT_USER = 0;
-
-        this.POWEROFFF = 0;     // power off
-        
-        this.USERADD = 21;      // useradd
-        this.USERMODIFY = 22;   // usermod
-        this.USERDEL = 23;      // userdel
-        this.CHANGEGROUP = 24;  // chgrp
-        this.SWITCHUSER = 25;   // su
-        // this.WHO = 26;          // who
-        // this.ID = 27;           // id
-
-        this.PRINTWORKINGDIR = 31; // pwd
-        this.CHANGEDIR = 32;       // cd
-        this.LIST = "ls";            // ls
-        this.MAKEDIR = 34;         // mkdir
-        this.REMOVEDIR = 35;       // rmdir
-
-        this.CONCATENATE = 41;  // cat
-        this.MOVE = 42;         // move
-        this.COPY = 43;         // cp
-        this.TOUCH = 44;        // touch
-        this.REMOVE = 45;       // rm
-
-        this.CHANGEMODE = 50;   // chmod
-
         this.initalizate();
     }
 
@@ -216,6 +183,13 @@ class System {
     async list(shell) {
         let parent = await this.find_folder_by_dir(shell.username, shell.dir);
 
+        let result = await this.check_permissions(shell.username, parent, this.READ);
+
+        if (result == this.READ) {
+            // no permissions
+            return this.READ;
+        }
+        
         if (parent == null) {
             this.log.push("cd: " + shell.dir + ": No such file or directory");
             return false;
@@ -231,34 +205,117 @@ class System {
     }
 
     async change_dir(shell, dest_path) {
-        let path = dest_path;
         let work_dirs = shell.dir;
         let username = shell.username;
         
-        if ((dest_path[0] == '.' && dest_path[1] == '/') || (dest_path == ".")) {
-            dest_path = work_dirs + dest_path.substring(1);
-        }
-        else if ((dest_path[0] == '.' && dest_path[1] == '.' && dest_path[2] == '/') || (dest_path == "..")) {
-            dest_path = work_dirs.substring(0, work_dirs.lastIndexOf('/')) + dest_path.substring(2);
-        }
-        else if (dest_path[0] != '/') {
-            if (work_dirs == '/') 
-                dest_path = work_dirs + dest_path;
-            else 
-                dest_path = work_dirs + '/' + dest_path;
+        // if ((dest_path[0] == '.' && dest_path[1] == '/') || (dest_path == ".")) {
+        //     dest_path = work_dirs + dest_path.substring(1);
+        // }
+        // else if ((dest_path[0] == '.' && dest_path[1] == '.' && dest_path[2] == '/') || (dest_path == "..")) {
+        //     dest_path = work_dirs.substring(0, work_dirs.lastIndexOf('/')) + dest_path.substring(2);
+        // }
+        // else if (dest_path[0] != '/') {
+        //     if (work_dirs == '/') 
+        //         dest_path = work_dirs + dest_path;
+        //     else 
+        //         dest_path = work_dirs + '/' + dest_path;
+        // }
+        let path = await this.get_absolute_path(work_dirs, dest_path)
+
+        let folder = await this.find_folder_by_dir(username, path);
+        let result = await this.check_permissions(shell.username, folder, this.EXECUTE);
+        if (result == this.EXECUTE) {
+            // no permissions
+            return this.EXECUTE;
         }
         
-
-        let folder = await this.find_folder_by_dir(username, dest_path);
         if (folder != null) {
-            shell.dir = dest_path;
+            shell.dir = path;
             return true;
         }
         else {
-            this.log.push("cd: " + path + ": No such file or directory");
+            this.log.push("cd: " + dest_path + ": No such file or directory");
+            return false;
+        }   
+    }
+
+    async change_mode(shell, dest_path, type, new_privi) {
+        let work_dirs = shell.dir;
+        let username = shell.username;
+        // find file
+        let path = await this.get_absolute_path(work_dirs, dest_path);
+        let dest = await this.find_parent_child_by_dir(username, path);
+
+        if (dest == null) {
+            this.log.push("chmod: " + dest_path + ": No such file or directory");
             return false;
         }
-            
+
+        let folder = null; 
+        let folders = dest.parent.folders;
+        for (let i = 0; i < folders.length; i++) {
+            if (folders[i].name == '/' + dest.child_name) {
+                folder = await folders[i];
+                break;
+            }
+        }
+
+        if (folder != null) {
+            if (folder.permissions.owner == username || username == 'root') {
+                let new_privilege = '';
+                if (type == 'owner') {
+                    new_privilege = 'd' + await sub_privilege(new_privi) + folder.permissions.privilege.substring(4, 7);
+                }
+                else {
+                    new_privilege = folder.permissions.privilege.substring(0, 4) + await sub_privilege(new_privi);
+                }
+
+                await sql_client.connect();
+                await sql_client.update("storage", {ID: folder.ID}, {$set: {"permissions.privilege": new_privilege}});
+                await sql_client.disconnect();
+
+                return true;
+            }
+            else {
+                this.log.push('Permission denied.');
+                return false;
+            }
+        }
+
+        let file = null; 
+        let files = dest.parent.folders;
+        for (let i = 0; i < files.length; i++) {
+            if (files[i].name == dest.child_name) {
+                file = await files[i];
+                break;
+            }
+        }
+
+        if (file != null) {
+            if (folder.permissions.owner == username || username == 'root') {
+                let new_privilege = '';
+                if (type == 'owner') {
+                    new_privilege = await sub_privilege(new_privi) + folder.permissions.privilege.substring(4, 7);
+                }
+                else {
+                    new_privilege = folder.permissions.privilege.substring(0, 4) + await sub_privilege(new_privi);
+                }
+
+                await sql_client.connect();
+                await sql_client.update("storage", {ID: file.ID}, {$set: {"permissions.privilege": new_privilege}});
+                await sql_client.disconnect();
+
+                return true;
+            }
+            else {
+                this.log.push('Permission denied.');
+                return false;
+            }
+        }
+        else {
+            this.log.push("chmod: " + dest.child_name + ": No such file or directory");
+            return false;
+        }
     }
 
     async new_user(user_name) {
@@ -278,6 +335,23 @@ class System {
         //     return;
         // }
 
+    }
+
+    async get_absolute_path(work_dirs, dest_path) {
+        if ((dest_path[0] == '.' && dest_path[1] == '/') || (dest_path == ".")) {
+            dest_path = await work_dirs + dest_path.substring(1);;
+        }
+        else if ((dest_path[0] == '.' && dest_path[1] == '.' && dest_path[2] == '/') || (dest_path == "..")) {
+            dest_path = await work_dirs.substring(0, work_dirs.lastIndexOf('/')) + dest_path.substring(2);
+        }
+        else if (dest_path[0] != '/') {
+            if (work_dirs == '/') 
+                dest_path = await work_dirs + dest_path;
+            else 
+                dest_path = await work_dirs + '/' + dest_path;
+        }
+
+        return dest_path;
     }
 
     async find_folder_by_dir(username, path) {            
@@ -352,24 +426,32 @@ class System {
     // }
 
     async new_folder(username, work_dirs, dest_path) {
-        if ((dest_path[0] == '.' && dest_path[1] == '/') || (dest_path == ".")) {
-            dest_path = work_dirs + dest_path.substring(1);;
-        }
-        else if ((dest_path[0] == '.' && dest_path[1] == '.' && dest_path[2] == '/') || (dest_path == "..")) {
-            dest_path = work_dirs.substring(0, work_dirs.lastIndexOf('/')) + dest_path.substring(2);
-        }
-        else if (dest_path[0] != '/') {
-            if (work_dirs == '/') 
-                dest_path = work_dirs + dest_path;
-            else 
-                dest_path = work_dirs + '/' + dest_path;
-        }
-        
-        let dest = await this.find_parent_child_by_dir(username, dest_path);
+        // if ((dest_path[0] == '.' && dest_path[1] == '/') || (dest_path == ".")) {
+        //     dest_path = work_dirs + dest_path.substring(1);;
+        // }
+        // else if ((dest_path[0] == '.' && dest_path[1] == '.' && dest_path[2] == '/') || (dest_path == "..")) {
+        //     dest_path = work_dirs.substring(0, work_dirs.lastIndexOf('/')) + dest_path.substring(2);
+        // }
+        // else if (dest_path[0] != '/') {
+        //     if (work_dirs == '/') 
+        //         dest_path = work_dirs + dest_path;
+        //     else 
+        //         dest_path = work_dirs + '/' + dest_path;
+        // }
+        let path = await this.get_absolute_path(work_dirs, dest_path);
+
+        let dest = await this.find_parent_child_by_dir(username, path);
+
         if (dest == null) {
-            this.log.push("rm: " + dest.child_name + ": No such file or directory");
+            this.log.push("rm: " + dest_path + ": No such file or directory");
             return false;
-        } 
+        }
+
+        let result = await this.check_permissions(username, dest.parent, this.WRITE);
+        if (result == this.WRITE) {
+            // no permissions
+            return this.WRITE;
+        }
 
         let folders = dest.parent.folders;
         for (let i = 0; i < folders.length; i++) {
@@ -388,12 +470,11 @@ class System {
             }
         }
         
-        //permission
-        //console.log(this.set_privilege(System.FOLDER, 7, 0));
-        let permission = new Permission(username, this.set_privilege(System.FOLDER, 7, 0));
+        //permissions
+        let permissions = new Permission(username, this.set_privilege(System.FOLDER, 7, 4));
 
         let ts = Date.parse(new Date()) / 1000;
-        let folder = new Folder(UUID(), dest.parent.ID, '/' + dest.child_name, ts, permission);
+        let folder = new Folder(UUID(), dest.parent.ID, '/' + dest.child_name, ts, permissions);
         
         dest.parent.folders.push(folder);
 
@@ -404,25 +485,35 @@ class System {
         return true;
     };
 
-     async new_empty_file(username, work_dirs, dest_path) {
-        if ((dest_path[0] == '.' && dest_path[1] == '/') || (dest_path == ".")) {
-            dest_path = work_dirs + dest_path.substring(1);;
-        }
-        else if ((dest_path[0] == '.' && dest_path[1] == '.' && dest_path[2] == '/') || (dest_path == "..")) {
-            dest_path = work_dirs.substring(0, work_dirs.lastIndexOf('/')) + dest_path.substring(2);
-        }
-        else if (dest_path[0] != '/') {
-            if (work_dirs == '/') 
-                dest_path = work_dirs + dest_path;
-            else 
-                dest_path = work_dirs + '/' + dest_path;
-        }
+    async new_empty_file(username, work_dirs, dest_path) {
+        // if ((dest_path[0] == '.' && dest_path[1] == '/') || (dest_path == ".")) {
+        //     dest_path = work_dirs + dest_path.substring(1);;
+        // }
+        // else if ((dest_path[0] == '.' && dest_path[1] == '.' && dest_path[2] == '/') || (dest_path == "..")) {
+        //     dest_path = work_dirs.substring(0, work_dirs.lastIndexOf('/')) + dest_path.substring(2);
+        // }
+        // else if (dest_path[0] != '/') {
+        //     if (work_dirs == '/') 
+        //         dest_path = work_dirs + dest_path;
+        //     else 
+        //         dest_path = work_dirs + '/' + dest_path;
+        // }
         
-        let dest = await this.find_parent_child_by_dir(username, dest_path);
+        let path = await this.get_absolute_path(work_dirs, dest_path);
+
+        let dest = await this.find_parent_child_by_dir(username, path);
+        
         if (dest == null) {
-            this.log.push("rm: " + dest.child_name + ": No such file or directory");
+            this.log.push("rm: " + dest_path + ": No such file or directory");
             return false;
-        } 
+        }
+
+        //permissions
+        let result = await this.check_permissions(username, dest.parent, this.WRITE);
+        if (result == this.WRITE) {
+            // no permissions
+            return this.WRITE;
+        }
 
         let folders = dest.parent.folders;
         for (let i = 0; i < folders.length; i++) {
@@ -441,12 +532,10 @@ class System {
             }
         }
         
-        //permission
-        //console.log(this.set_privilege(System.FOLDER, 7, 0));
-        let permission = new Permission(username, this.set_privilege(System.FOLDER, 7, 0));
+        let permissions = new Permission(username, this.set_privilege(System.FOLDER, 7, 4));
 
         let ts = Date.parse(new Date()) / 1000;
-        let file = new File(UUID(), dest.parent.ID, '/' + dest.child_name, ts, permission, 0, null);
+        let file = new File(UUID(), dest.parent.ID, '/' + dest.child_name, ts, permissions, 0, null);
         
         dest.parent.files.push(file);
 
@@ -462,24 +551,32 @@ class System {
             this.log.push("rm: \".\" and \"..\" may not be removed");
             return false;
         }
-        if (dest_path[0] == '.' && dest_path[1] == '/') {
-            dest_path = work_dirs + dest_path.substring(1);;
-        }
-        else if (dest_path[0] == '.' && dest_path[1] == '.' && dest_path[2] == '/') {
-            dest_path = work_dirs.substring(0, work_dirs.lastIndexOf('/')) + dest_path.substring(2);
-        }
-        else if (dest_path[0] != '/') {
-            if (work_dirs == '/') 
-                dest_path = work_dirs + dest_path;
-            else 
-                dest_path = work_dirs + '/' + dest_path;
+        // if (dest_path[0] == '.' && dest_path[1] == '/') {
+        //     dest_path = work_dirs + dest_path.substring(1);;
+        // }
+        // else if (dest_path[0] == '.' && dest_path[1] == '.' && dest_path[2] == '/') {
+        //     dest_path = work_dirs.substring(0, work_dirs.lastIndexOf('/')) + dest_path.substring(2);
+        // }
+        // else if (dest_path[0] != '/') {
+        //     if (work_dirs == '/') 
+        //         dest_path = work_dirs + dest_path;
+        //     else 
+        //         dest_path = work_dirs + '/' + dest_path;
+        // }
+
+        let path = await this.get_absolute_path(work_dirs, dest_path);
+
+        let dest = await this.find_parent_child_by_dir(username, path);
+
+        if (dest == null) {
+            this.log.push("rm: " + dest_path + ": No such file or directory");
+            return false;
         }
 
-        //permission
-        let dest = await this.find_parent_child_by_dir(username, dest_path);
-        if (dest == null) {
-            this.log.push("rm: " + dest.child_name + ": No such file or directory");
-            return false;
+        let result = await this.check_permissions(username, dest.parent, this.WRITE);
+        if (result == this.WRITE) {
+            // no permissions
+            return this.WRITE;
         }
 
         let folder = null; 
@@ -538,23 +635,26 @@ class System {
             this.log.push("rm: \".\" and \"..\" may not be removed");
             return false;
         }
-        if (dest_path[0] == '.' && dest_path[1] == '/') {
-            dest_path = work_dirs + dest_path.substring(1);;
-        }
-        else if (dest_path[0] == '.' && dest_path[1] == '.' && dest_path[2] == '/') {
-            dest_path = work_dirs.substring(0, work_dirs.lastIndexOf('/')) + dest_path.substring(2);
-        }
-        else if (dest_path[0] != '/') {
-            if (work_dirs == '/') 
-                dest_path = work_dirs + dest_path;
-            else 
-                dest_path = work_dirs + '/' + dest_path;
-        }
 
-        //permission
-        let dest = await this.find_parent_child_by_dir(username, dest_path);
+        // if (dest_path[0] == '.' && dest_path[1] == '/') {
+        //     dest_path = work_dirs + dest_path.substring(1);;
+        // }
+        // else if (dest_path[0] == '.' && dest_path[1] == '.' && dest_path[2] == '/') {
+        //     dest_path = work_dirs.substring(0, work_dirs.lastIndexOf('/')) + dest_path.substring(2);
+        // }
+        // else if (dest_path[0] != '/') {
+        //     if (work_dirs == '/') 
+        //         dest_path = work_dirs + dest_path;
+        //     else 
+        //         dest_path = work_dirs + '/' + dest_path;
+        // }
+
+        let path = await this.get_absolute_path(work_dirs, dest_path);
+
+        let dest = await this.find_parent_child_by_dir(username, path);
+
         if (dest == null) {
-            this.log.push("rm: " + dest.child_name + ": No such file or directory");
+            this.log.push("rm: " + dest_path + ": No such file or directory");
             return false;
         }
 
@@ -600,7 +700,7 @@ class System {
     //             dest_path = work_dirs + '/' + dest_path;
     //     }
 
-    //     //permission
+    //     //permissions
     //     let dest = await this.find_parent_child_by_dir(username, dest_path);
     //     if (dest == null) {
     //         this.log.push("rm: " + dest.child_name + ": No such file or directory");
@@ -634,6 +734,7 @@ class System {
 
     // move_folder() {};
     // move_file() {};
+
 
     set_privilege(type, user = 7, other = 7) {
         let str = "";
@@ -676,26 +777,131 @@ class System {
         return str;
     }
 
-    async test() {
-        var readStream = fs.createReadStream(__dirname+"/../a.txt");
-        var writeStream = fs.createWriteStream(__dirname+"/../b");
+    async write_file(username, work_dirs, dest_path, size) {
+        // if ((dest_path[0] == '.' && dest_path[1] == '/') || (dest_path == ".")) {
+        //     dest_path = work_dirs + dest_path.substring(1);;
+        // }
+        // else if ((dest_path[0] == '.' && dest_path[1] == '.' && dest_path[2] == '/') || (dest_path == "..")) {
+        //     dest_path = work_dirs.substring(0, work_dirs.lastIndexOf('/')) + dest_path.substring(2);
+        // }
+        // else if (dest_path[0] != '/') {
+        //     if (work_dirs == '/') 
+        //         dest_path = work_dirs + dest_path;
+        //     else 
+        //         dest_path = work_dirs + '/' + dest_path;
+        // }
+        
+        let path = await this.get_absolute_path(work_dirs, dest_path);
 
-        readStream//读取
-            .pipe(encrypt_stream)//加密
-            .pipe(writeStream)//写入
+        let dest = await this.find_parent_child_by_dir(username, path);
+        
+        if (dest == null) {
+            this.log.push("write file: " + dest_path + ": No such file or directory");
+            return false;
+        }
+
+        //permissions
+        let result = await this.check_permissions(username, dest.parent, this.WRITE);
+        if (result == this.WRITE) {
+            // no permissions
+            return this.WRITE;
+        }
+
+        let folders = dest.parent.folders;
+        for (let i = 0; i < folders.length; i++) {
+            if (folders[i].name == '/' + dest.child_name) {
+                // this.log.print('already existed');
+                this.log.push("write file: " + dest.child_name + ": is a directory");
+                return false;
+            }
+        }
+        let files = dest.parent.files;
+        for (let i = 0; i < files.length; i++) {
+            if (files[i].name == dest.child_name) {
+                files[i].data = files[i].uuid;
+                files[i].size = size;
+                await sql_client.connect();
+                await sql_client.update("storage", {ID: files[i].ID}, {$set:{data: files[i].data, size: files[i].size}});
+                await sql_client.disconnect();
+
+                return true;
+            }
+        }
+
+        this.log.push("write file: " + dest.child_name + ": No such file or directory");
+        return false;
+        
+        // let permissions = new Permission(username, this.set_privilege(System.FOLDER, 7, 0));
+
+        // let ts = Date.parse(new Date()) / 1000;
+        // let file = new File(UUID(), dest.parent.ID, '/' + dest.child_name, ts, permission, 0, null);
+        
+        // dest.parent.files.push(file);
+
+        
+    };
+
+    async encrypt_file(timestamp, uuid) {
+        var readStream = fs.createReadStream(__dirname + "/temp/" + timestamp);
+        var writeStream = fs.createWriteStream(__dirname + "/store/" + uuid);
+
+        readStream
+            .pipe(encrypt_stream)
+            .pipe(writeStream)
             .on("finish",function(){//写入结束的回调
+                console.log("done");
+            })        
+    }
+
+    async decrypt_file(uuid) {
+        var readStream = fs.createReadStream(__dirname + "/store/" + uuid);
+        var writeStream = fs.createWriteStream(__dirname + "/temp/" + uuid);
+        readStream
+            .pipe(decrypt_stream)
+            .pipe(writeStream)
+            .on("finish",function(){//解压后的回调
                 console.log("done");
             })
     }
 
-    async testb() {
-        var readStream = fs.createReadStream(__dirname+"/../b");
-        readStream//读取
-            .pipe(decrypt_stream)//解密
-            .pipe(process.stdout)//输出到终端中   标准输出
-            .on("finish",function(){//解压后的回调
-                console.log("done");
-            })
+    async check_permissions(username, file, opreation) {
+        let user = file.permissions.owner;
+        let privilege = file.permissions.privilege;
+        if (privilege[0] = 'd')
+            privilege.splice(0, 1);
+
+        if (user == username || username == 'root') {
+            if (opreation == System.READ) {
+                privilege = await privilege[0];
+            }
+    
+            else if (opreation == System.WRITE) {
+                privilege = await privilege[1];
+            }
+    
+            else if (opreation == System.EXECUTE) {
+                privilege = await privilege[2];
+            }
+        }
+        else {
+            if (opreation == System.READ) {
+                privilege = await privilege[3];
+            }
+    
+            else if (opreation == System.WRITE) {
+                privilege = await privilege[4];
+            }
+    
+            else if (opreation == System.EXECUTE) {
+                privilege = await privilege[5];
+            }
+        }
+            
+        if (privilege == '-')
+            return false;
+        else 
+            return true;       
+
     }
 }
 
@@ -844,7 +1050,7 @@ class File extends Binary {
             parent: this.parent,
             name: this.name,
             created_time: this.created_time,
-            modified_time: this.created_time,
+            //modified_time: this.created_time,
             permissions: this.permissions.db_json(),
             size: this.size,
             data: this.data
