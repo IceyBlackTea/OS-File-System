@@ -1043,19 +1043,23 @@ class Log {
         
     }
 
+    //ty_update 去掉<br>
     async sendOne(shell, res, code="200") {
-        await res.status(code).send(this.send_buffers[0] + "<br>");
+        //await res.status(code).send(this.send_buffers[0] + "<br>");
+        await res.status(code).send(this.send_buffers[0]+"<br>");
         this.send_buffers.splice(0, 1);
     }
 
+    //ty_update 去掉<br>
     async sendAll(shell, res, code="200") {
-        let message = "";
+        let message =new Array();
         if (this.send_buffers.length > 0) {
-            message = this.send_buffers[0];
-            for (let i = 1; i < this.send_buffers.length; i++) {
-                message += "<br>" + this.send_buffers[i];
+            //message = this.send_buffers[0];
+            for (let i = 0; i < this.send_buffers.length; i++) {
+                message.push(this.send_buffers[i]);
             }
             //message += shell.username + '@sfs:' + shell.dir + '#';
+            console.log(message);
         }
         let obj = {
             username: shell.username,
