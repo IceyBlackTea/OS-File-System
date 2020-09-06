@@ -2,7 +2,7 @@
  * @Author: One_Random
  * @Date: 2020-08-23 11:17:12
  * @LastEditors: One_Random
- * @LastEditTime: 2020-09-06 11:11:45
+ * @LastEditTime: 2020-09-07 00:17:54
  * @FilePath: /FS/main.js
  * @Description: Copyright © 2020 One_Random. All rights reserved.
  */
@@ -13,9 +13,12 @@ const app = express();
 const cookieParser = require('cookie-parser')
 app.use(cookieParser());
 
+const multer = require('multer');
+
 const sfs = require('./server-js/sfs.js');
 const system = new sfs.System();
 
+const fs = require('fs');
 const path = require('path');
 
 // app.use(express.static(__dirname));
@@ -204,68 +207,56 @@ app.get('/file/get/:uuid', async (req, res) => {
     //res.end();
 });
 
-// app.get('/shell/get/:cmd', async (req, res) => {
-//     let cmd = req.params['cmd'];
 
-//     if (cmd == 'ls') {
-//         await system.list('/');
-//         system.log.send(res);
-//     }
-//     else if (cmd == 'cd_root') {
-//         await system.list('/root');
-//         system.log.send(res);
-//     }
-//     else if (cmd == 'cd_a') {
-//         await system.list('/root/a');
-//         system.log.send(res);
-//     }
+app.post('/file/post', 
+    multer({dest: 'temp'})
+    .single('file'), async (req, res, next) => {
+    if (req.file.length === 0) {
+        res.render("error", {message: "上传文件不能为空！"});
+        return;
+    } else {
+        let upload_file = await req.file;
+        let size = await upload_file.size;
 
-//     // if (cmd == 'send') {
-//     //     system.log.send(res);
-//     // }
-//     // else if (cmd == 'wrong') {
-//     //     res.status('400').send();
-//     // }
+        let uuid = await req.cookies.UUID;
+        if (uuid == undefined) {
+            res.status('401').send();
+            res.end();
+        }
+        else {
+            //await system.encrypt_file(upload_file.filename, 'xxxxx');
+            let shell = await system.get_shell(uuid);
+            if (shell == null) {
+                res.cookie('UUID', '', {maxAge: 0, httpOnly: true});
+                res.status('401').send();
+                res.end();
+            }
+            else {
+                let folder = await system.find_folder_by_dir(shell.username, shell.dir);
+                let result = await system.check_permissions(shell.username, folder, system.WRITE);
+                if (result) {
+                    let file = await system.new_empty_file(shell.username, shell.dir, upload_file.originalname);
+                    if (file != false) {
+                        console.log(file);
+                        // await fs.renameSync('./temp/' + upload_file.filename, './store/' + file.ID);
+                        await system.encrypt_file(upload_file.filename, file.ID)
+                        await system.write_file(shell.username, shell.dir, "./" + file.name, size);
 
-//     // if (cmd == "system info") {
-//     //     system.show_system_info();
-//     // }
-    
-//     res.end();
-// });
-
-// app.get('/shell/get/:cmd/:args', async (req, res) => {
-//     // let cmd = req.params['cmd'];
-//     // let args = req.params['args'];
-//     // cmd = cmd + " " + args;
-
-//     // if (cmd == 'mkdir a') {
-//     //     await system.new_folder('root', "/root", "a");
-//     // }
-//     // else if (cmd == 'mkdir root') {
-//     //     await system.new_folder('root', "/", "root");
-//     // }
-//     // else if (cmd == 'mkdir b') {
-//     //     await system.new_folder('root', "/root/a", "b");
-//     // }
-//     // else if (cmd == 'rm a') {
-//     //     await system.delete_folder('root', "/root", "a");
-//     // }
-
-//     // if (cmd.search(/mkdir/))
-
-//     // if (cmd == 'send') {
-//     //     system.log.send(res);
-//     // }
-//     // else if (cmd == 'wrong') {
-//     //     res.status('400').send();
-//     // }
-
-//     // if (cmd == "system info") {
-//     //     system.show_system_info();
-//     // }
-    
-//     res.end();
-// });
+                        await system.log.send(shell, res);
+                        res.end();
+                    }
+                    else {
+                        
+                    }
+                }
+                else {
+                    await system.log.push('No permission');
+                    await system.send(shell, res);
+                    res.end();
+                }
+            }
+        }
+    }
+});
 
 app.listen(9005);

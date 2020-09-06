@@ -2,7 +2,7 @@
  * @Author: One_Random
  * @Date: 2020-08-26 12:36:07
  * @LastEditors: One_Random
- * @LastEditTime: 2020-09-02 18:55:22
+ * @LastEditTime: 2020-09-07 00:26:08
  * @FilePath: /FS/html/shell.html
  * @Description: Copyright © 2020 One_Random. All rights reserved.
 -->
@@ -23,30 +23,6 @@
                 }
 
                 return xmlhttp;
-            }
-            
-            function getXMLDoc() {
-                let xmlhttp = XMLHTTP();
-
-                xmlhttp.onreadystatechange = () => {
-                    if (xmlhttp.readyState == 4) {
-                        if (xmlhttp.status == 200) {
-                            document.getElementById("result").innerHTML += document.getElementById("input").value + "<br>" + xmlhttp.responseText;
-                            document.getElementById("input").value = "";
-                        }
-                        else {
-                            document.getElementById("result").innerHTML += "Sorry!<br>It looks like something has gone wrong!<br>";
-                        }
-                    }
-                }
-
-                let method = "GET";
-                let cmd = document.getElementById("input").value.replace(/\s+/g,"/");
-                let url = "/shell/get/" + cmd;  
-                let async = true;
-
-                xmlhttp.open(method, url, async);
-                xmlhttp.send();
             }
 
             function postXMLDoc() {
@@ -101,12 +77,42 @@
                 xmlhttp.open(method, url, async);
                 xmlhttp.send(JSON.stringify(obj));
             }
+
+            function upload() {
+                // 表单数据对象
+                var formData = new FormData();
+                // 多个文件需要进行逐个遍历
+                for (var i = 0; i < document.getElementById("files").files.length; i++) {
+                    // 将文件数据添加到表单数据中
+                    formData.append("file", document.getElementById("files").files[i]);
+                }
+                let xmlhttp = XMLHTTP();
+                xmlhttp.open('POST', '/file/post')
+                xmlhttp.send(formData);
+                // if (request) {
+                //     request.onload = function () {
+                //         if (request.responseText == "1") {
+                //             alert("上传成功！");
+                //         } else {
+                //             alert("上传失败！");
+                //         }
+                //     };
+                //     // 给进度条添加监听事件，这样才有进度条的效果
+                //     request.upload.addEventListener("progress", progressChange, false)
+
+                //     // 上传表单数据
+                    
+                // }
+            }
         </script>
     </head>
     <body onload="postXMLDoc();">
         <input id="input" name="input" type="text"/>
         <!-- <button onclick="getXMLDoc();">get</button> -->
         <button onclick="postXMLDoc();">post</button>
+        <br>
+        <input id="files" type="file" name="file"/> 
+        <button type="button" name="button" onclick="upload()">上传</button>
         <p id="result"></p>
     </body>
 </html>

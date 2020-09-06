@@ -2,7 +2,7 @@
  * @Author: One_Random
  * @Date: 2020-08-13 00:08:42
  * @LastEditors: One_Random
- * @LastEditTime: 2020-09-06 11:53:44
+ * @LastEditTime: 2020-09-07 00:26:30
  * @FilePath: /FS/server-js/sfs.js
  * @Description: Copyright © 2020 One_Random. All rights reserved.
  */
@@ -13,8 +13,6 @@ const fs = require('fs');
 const sql_client = require('./sql.js');
 
 const encrypt_password = new Buffer.from("password");
-const encrypt_stream = crypto.createCipher('aes-256-cbc', encrypt_password);
-const decrypt_stream = crypto.createDecipher('aes-256-cbc',encrypt_password);
 
 // fs_system.js
 /*
@@ -69,7 +67,24 @@ class System {
         }     
     }
 
+    async clean_temp_files() {
+        let files = [];
+        if(fs.existsSync("./temp/")) {
+            files = fs.readdirSync("./temp/");
+            files.forEach(function(file, index) {
+                var curPath = "./temp/" + file;
+                if(fs.statSync(curPath).isDirectory()) { // recurse
+                    deleteall(curPath);
+                } else { // delete file
+                    fs.unlinkSync(curPath);
+                }
+            });
+        }
+    }
+
     async setup_storage() {
+        await this.clean_temp_files();
+
         var storage = await sql_client.find("storage");
 
         this.device = new Folder(storage[0].ID, storage[0].parent, storage[0].name, storage[0].created_time, storage[0].permissions);
@@ -280,69 +295,6 @@ class System {
         this.log.push("ls: " + dest_path + ": No such file or directory");
         return false;
     }
-
-    // async list_dir(shell, dest_path) {
-    //     let path = await this.get_absolute_path(shell.dir, dest_path);
-
-    //     let parent = await this.find_folder_by_dir(shell.username, path);
-
-    //     let result = await this.check_permissions(shell.username, parent, this.READ);
-
-    //     if (result == this.READ) {
-    //         // no permissions
-    //         return this.READ;
-    //     }
-        
-    //     if (parent == null) {
-    //         this.log.push("ls: " + shell.dir + ": No such file or directory");
-    //         return false;
-    //     }
-
-    //     for (let i = 0; i < parent.folders.length; i++) {
-    //         this.log.push(await parent.folders[i].name);
-    //     }
-
-    //     for (let i = 0; i < parent.files.length; i++) {
-    //         this.log.push(await parent.files[i].name);
-    //     }
-    // }
-
-    // async list_file(shell, dest_path) {
-    //     let path = await this.get_absolute_path(shell.dir, dest_path);
-        
-    //     let dest = await this.find_parent_child_by_dir(shell.username, path);
-
-    //     let result = await this.check_permissions(shell.username, dest.parent, this.READ);
-
-    //     if (result == this.READ) {
-    //         // no permissions
-    //         return this.READ;
-    //     }
-        
-    //     if (dest == null) {
-    //         this.log.push("ls: " + dest_path + ": No such file or directory");
-    //         return false;
-    //     }
-
-    //     let folders = dest.parent.folders;
-    //     for (let i = 0; i < folders.length; i++) {
-    //         if (folders[i].name == dest.child_name) {
-    //             this.log.push(await folders[i].db_json());
-    //             return true;
-    //         }   
-    //     }
-
-    //     let files = dest.parent.files;
-    //     for (let i = 0; i < files.length; i++) {
-    //         if (files[i].name == dest.child_name) {
-    //             this.log.push(await files[i].db_json());
-    //             return true;
-    //         }
-    //     }
-
-    //     this.log.push("ls: " + dest_path + ": No such file or directory");
-    //     return false;
-    // }
 
     async change_dir(shell, dest_path) {
         let work_dirs = shell.dir;
@@ -590,20 +542,7 @@ class System {
         return true;
     };
 
-    async new_empty_file(username, work_dirs, dest_path) {
-        // if ((dest_path[0] == '.' && dest_path[1] == '/') || (dest_path == ".")) {
-        //     dest_path = work_dirs + dest_path.substring(1);;
-        // }
-        // else if ((dest_path[0] == '.' && dest_path[1] == '.' && dest_path[2] == '/') || (dest_path == "..")) {
-        //     dest_path = work_dirs.substring(0, work_dirs.lastIndexOf('/')) + dest_path.substring(2);
-        // }
-        // else if (dest_path[0] != '/') {
-        //     if (work_dirs == '/') 
-        //         dest_path = work_dirs + dest_path;
-        //     else 
-        //         dest_path = work_dirs + '/' + dest_path;
-        // }
-        
+    async new_empty_file(username, work_dirs, dest_path) {      
         let path = await this.get_absolute_path(work_dirs, dest_path);
 
         let dest = await this.find_parent_child_by_dir(username, path);
@@ -637,10 +576,10 @@ class System {
             }
         }
         
-        let permissions = new Permission(username, this.set_privilege(System.FOLDER, 6, 4));
+        let permissions = new Permission(username, await this.set_privilege(this.FOLDER, 6, 4));
 
         let ts = Date.parse(new Date()) / 1000;
-        let file = new File(UUID(), dest.parent.ID, '/' + dest.child_name, ts, permissions, 0, null);
+        let file = new File(UUID(), dest.parent.ID, dest.child_name, ts, permissions, 0, null);
         
         dest.parent.files.push(file);
 
@@ -648,7 +587,7 @@ class System {
         await sql_client.insert("storage", file.db_json());
         await sql_client.disconnect();
 
-        return true;
+        return file;
     };
 
     async delete_folder_file(username, work_dirs, dest_path, type='file') {
@@ -656,18 +595,6 @@ class System {
             this.log.push("rm: \".\" and \"..\" may not be removed");
             return false;
         }
-        // if (dest_path[0] == '.' && dest_path[1] == '/') {
-        //     dest_path = work_dirs + dest_path.substring(1);;
-        // }
-        // else if (dest_path[0] == '.' && dest_path[1] == '.' && dest_path[2] == '/') {
-        //     dest_path = work_dirs.substring(0, work_dirs.lastIndexOf('/')) + dest_path.substring(2);
-        // }
-        // else if (dest_path[0] != '/') {
-        //     if (work_dirs == '/') 
-        //         dest_path = work_dirs + dest_path;
-        //     else 
-        //         dest_path = work_dirs + '/' + dest_path;
-        // }
 
         let path = await this.get_absolute_path(work_dirs, dest_path);
 
@@ -741,19 +668,6 @@ class System {
             return false;
         }
 
-        // if (dest_path[0] == '.' && dest_path[1] == '/') {
-        //     dest_path = work_dirs + dest_path.substring(1);;
-        // }
-        // else if (dest_path[0] == '.' && dest_path[1] == '.' && dest_path[2] == '/') {
-        //     dest_path = work_dirs.substring(0, work_dirs.lastIndexOf('/')) + dest_path.substring(2);
-        // }
-        // else if (dest_path[0] != '/') {
-        //     if (work_dirs == '/') 
-        //         dest_path = work_dirs + dest_path;
-        //     else 
-        //         dest_path = work_dirs + '/' + dest_path;
-        // }
-
         let path = await this.get_absolute_path(work_dirs, dest_path);
 
         let dest = await this.find_parent_child_by_dir(username, path);
@@ -786,60 +700,6 @@ class System {
             return false;
         }
     };
-
-    // async delete_file(username, work_dirs, dest_path) {
-    //     if (dest_path == '.' || dest_path == "..") {
-    //         this.log.push("rm: \".\" and \"..\" may not be removed");
-    //         return false;
-    //     }
-    //     if (dest_path[0] == '.' && dest_path[1] == '/') {
-    //         dest_path = work_dirs + dest_path.substring(1);;
-    //     }
-    //     else if (dest_path[0] == '.' && dest_path[1] == '.' && dest_path[2] == '/') {
-    //         dest_path = work_dirs.substring(0, work_dirs.lastIndexOf('/')) + dest_path.substring(2);
-    //     }
-    //     else if (dest_path[0] != '/') {
-    //         if (work_dirs == '/') 
-    //             dest_path = work_dirs + dest_path;
-    //         else 
-    //             dest_path = work_dirs + '/' + dest_path;
-    //     }
-
-    //     //permissions
-    //     let dest = await this.find_parent_child_by_dir(username, dest_path);
-    //     if (dest == null) {
-    //         this.log.push("rm: " + dest.child_name + ": No such file or directory");
-    //         return false;
-    //     }
-
-    //     let file = null; 
-    //     let files = dest.parent.files;
-    //     for (let i = 0; i < files.length; i++) {
-    //         if (files[i].name == dest.child_name) {
-    //             file = await files[i];
-    //             files.splice(i, 1);
-    //             break;
-    //         }
-    //     }
-
-    //     if (file != null) {
-    //         await sql_client.connect();
-    //         await sql_client.delete("storage", {ID: file.ID});
-    //         await sql_client.disconnect();
-
-    //         // delete local file
-
-    //         return true;
-    //     }
-    //     else {
-    //         this.log.push("rm: " + dest.child_name + ": No such file or directory");
-    //         return false;
-    //     }
-    // };
-
-    // move_folder() {};
-    // move_file() {};
-
 
     async set_privilege(type, user, other) {
         let str = "";
@@ -910,7 +770,7 @@ class System {
         let files = dest.parent.files;
         for (let i = 0; i < files.length; i++) {
             if (files[i].name == dest.child_name) {
-                files[i].data = files[i].uuid;
+                files[i].data = files[i].ID;
                 files[i].size = size;
                 await sql_client.connect();
                 await sql_client.update("storage", {ID: files[i].ID}, {$set:{data: files[i].data, size: files[i].size}});
@@ -933,11 +793,12 @@ class System {
         
     };
 
-    async encrypt_file(timestamp, uuid) {
-        var readStream = fs.createReadStream(__dirname + "/temp/" + timestamp);
-        var writeStream = fs.createWriteStream(__dirname + "/store/" + uuid);
+    async encrypt_file(filename, uuid) {
+        var readStream = await fs.createReadStream(__dirname + "/../temp/" + filename);
+        var writeStream = await fs.createWriteStream(__dirname + "/../store/" + uuid);
+        var encrypt_stream = crypto.createCipher('aes-256-cbc', encrypt_password);
 
-        readStream
+        await readStream
             .pipe(encrypt_stream)
             .pipe(writeStream)
             .on("finish",function(){//写入结束的回调
@@ -946,9 +807,11 @@ class System {
     }
 
     async decrypt_file(uuid) {
-        var readStream = fs.createReadStream(__dirname + "/store/" + uuid);
-        var writeStream = fs.createWriteStream(__dirname + "/temp/" + uuid);
-        readStream
+        var readStream = await fs.createReadStream(__dirname + "/../store/" + uuid);
+        var writeStream = await fs.createWriteStream(__dirname + "/../temp/" + uuid);
+        var decrypt_stream = crypto.createDecipher('aes-256-cbc',encrypt_password);
+        
+        await readStream
             .pipe(decrypt_stream)
             .pipe(writeStream)
             .on("finish",function(){//解压后的回调
