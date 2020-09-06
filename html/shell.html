@@ -1,19 +1,13 @@
-<!--
- * @Author: One_Random
- * @Date: 2020-08-26 12:36:07
- * @LastEditors: One_Random
- * @LastEditTime: 2020-09-02 18:55:22
- * @FilePath: /FS/html/shell.html
- * @Description: Copyright © 2020 One_Random. All rights reserved.
--->
 <!DOCTYPE html>
 <html lang="en">
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>shell</title>
+        <title>test</title>    
+        <link href="primer.css" rel="stylesheet" type="text/css" />   
+        <link href="test.css" rel="stylesheet" type="text/css"/>
         <script>
-            function XMLHTTP() {
+             function XMLHTTP() {
                 let xmlhttp;
                 if (window.XMLHttpRequest)
                     xmlhttp=new XMLHttpRequest();
@@ -25,31 +19,119 @@
                 return xmlhttp;
             }
             
-            function getXMLDoc() {
-                let xmlhttp = XMLHTTP();
+            //上传&新建文件
+            function createFile() {
+                let selectedFile = document.getElementById("new_file").files[0];
+            }
+            //新建文件夹
+            function createFolder() {
+                let files = sessionStorage.getItem('files');
+                files = JSON.parse(files);
+                
+               //保存文件夹名为新建文件夹+数字，而且文件夹名不重复
+                suffixs = [];
+                for(i = 0 ;i <files.length; i++) {
 
-                xmlhttp.onreadystatechange = () => {
-                    if (xmlhttp.readyState == 4) {
-                        if (xmlhttp.status == 200) {
-                            document.getElementById("result").innerHTML += document.getElementById("input").value + "<br>" + xmlhttp.responseText;
-                            document.getElementById("input").value = "";
-                        }
-                        else {
-                            document.getElementById("result").innerHTML += "Sorry!<br>It looks like something has gone wrong!<br>";
+                    if(files[i].sort =='folder' && files[i].name.search("新建文件夹") == 1) {
+
+                        name_suffix =files[i].name.substr(6);
+                        console.log(name_suffix);
+                        console.log(/^\d+$/.test(name_suffix))
+                        if(/^\d+$/.test(name_suffix)) {
+                            suffixs.push(Number(name_suffix));
                         }
                     }
                 }
 
-                let method = "GET";
-                let cmd = document.getElementById("input").value.replace(/\s+/g,"/");
-                let url = "/shell/get/" + cmd;  
-                let async = true;
+                var suffix = 1;
+                for(suffix = 1;;suffix++){ 
+                    var flag = true;
+                    for(i = 0;i < suffixs.length;i++) {
+                        if(suffix == suffixs[i]) {
+                            flag =false;
+                            break;
+                        }
+                    }
+                    if(flag == true)
+                        break;
+                }
 
-                xmlhttp.open(method, url, async);
-                xmlhttp.send();
+                var file_name = '新建文件夹'+suffix;
+                postXMLDoc('mkdir',file_name);
+            } 
+
+            
+
+            //右键命令
+            function menuFunction(command){
+
+                let id = sessionStorage.getItem('clickId');
+                sessionStorage.removeItem('clickId');
+
+                if(command == 'cd') {
+                    
+                    if(document.getElementById(id).lastChild.className == 'folder') {
+                        let name =document.getElementById(id).lastChild.lastChild.lastChild.innerText;
+                        postXMLDoc(command,name);
+                    }
+                   
+                }
+                
+                else if(command == 'rm') {
+                    let files = JSON.parse(sessionStorage.getItem('files'));
+                    id = Number(id);
+                    
+                    let file = files[id];
+                    console.log(file);
+                    let name = file.name;
+                    if(file.sort == 'folder') {
+                        
+                        postXMLDoc('rm','-r,'+name.substr(1)); 
+                    } 
+                    else {
+                        postXMLDoc('rm',name);
+                    }
+                }
             }
 
-            function postXMLDoc() {
+            //生成右键菜单
+            function generateRightMenu(elementClass,menuID) {
+
+                var elements =document.getElementsByClassName(elementClass);
+                var menu = document.getElementById(menuID);
+
+                
+                for(i = 0 ;i < elements.length;i++) {
+                    elements[i].onmousedown=function(aevent) {
+                        if(aevent.button==2) { //当事件属性button的值为2时，表用户按下了右键            
+                            
+                        
+                            //存储点击的文件ID
+                                sessionStorage.setItem('clickId',aevent.currentTarget.id);
+                                console.log(aevent.currentTarget);
+                                document.oncontextmenu=function(aevent) {
+                                
+                                aevent.preventDefault();          //对标准DOM 中断 默认点击右键事件处理函数
+                                menu.style.cssText='display:block;top:'+aevent.clientY+'px;'+'left:'+aevent.clientX+'px;'
+
+                            };
+                            
+                        }
+                    }
+                }
+
+                menu.onmouseleave=function() {                  //设置 鼠标移出菜单时 隐藏菜单
+                    setTimeout(function(){menu.style.display="none";},400);
+                    sessionStorage.removeItem('clickId');
+　　            }
+
+            }
+
+            //执行ls，生成图标
+            function init() {
+                
+                //清空session内容
+                sessionStorage.clear();
                 let xmlhttp = XMLHTTP();
 
                 xmlhttp.onreadystatechange = () => {
@@ -62,17 +144,49 @@
                             }
                             else {
                                 let recv_obj = JSON.parse(xmlhttp.responseText);
-                                document.getElementById("result").innerHTML += document.getElementById("input").value + "<br>" 
-                                                                            + recv_obj.message + "<br>"
-                                                                            + recv_obj.username + "@sfs:" + recv_obj.dir + "# ";
-                                document.getElementById("input").value = "";
+                                console.log(recv_obj);
+                                
+
+                                //获取当前路径下所有文件和文件夹。信息存储在session
+                                var files = [];
+                                var files_name = [];
+
+                                for(i = 0 ;i < recv_obj.message.length ;i++) {
+
+                                    let file={};
+
+                                    var sort = 'file';
+                                    var id = i;
+                                    if(recv_obj.message[i][0] = '/'){
+                                        sort = 'folder';
+                                    }
+                                    else{
+                                        sort = 'file';
+                                    }
+
+                                    file = {
+                                        "id": id,
+                                        "sort" : sort,
+                                        "name" : recv_obj.message[i]
+                                    }
+
+                                    console.log(file);
+
+                                    files.push(file);
+                                    files_name.push(recv_obj.message[i]);
+                                }
+      
+                                sessionStorage.setItem('files',JSON.stringify(files));
+
+                                //生成文件和文件夹图标
+                                generateIcon(files_name);
+
+                                //生成右键菜单
+                                generateRightMenu("items","right_menu");
                             } 
                         }
                         else if (xmlhttp.status == 202) {
                             let recv_obj = JSON.parse(xmlhttp.responseText);
-                            document.getElementById("result").innerHTML += document.getElementById("input").value + "<br>" 
-                                                                            + recv_obj.message + "<br>"
-                                                                            + recv_obj.username + "@sfs:" + recv_obj.dir + "# ";
                             window.open(recv_obj.message);
                         }
                         else if (xmlhttp.status == 401) {
@@ -80,33 +194,198 @@
                             window.location = "/login";
                         }
                         else {
-                            document.getElementById("result").innerHTML += "Sorry!<br>It looks like something has gone wrong!<br>";
+                           window.alert("Sorry!<br>It looks like something has gone wrong!");
                         }
                     }
                 }
 
-                let input = document.getElementById("input").value.replace(/\s+/g," ").split(' ');
-
                 let method = "POST";
                 let url = "/shell/post";  
-                let cmd = input.splice(0, 1);
-                let args = input;
                 let async = true;
 
                 let obj = {
-                    "cmd": cmd,
-                    "args": args
+                    "cmd": "ls",
+                    "args": ""
                 };
 
                 xmlhttp.open(method, url, async);
                 xmlhttp.send(JSON.stringify(obj));
             }
+
+            //提交命令
+            function postXMLDoc(cmd,arg) {
+                let xmlhttp = XMLHTTP();
+
+                xmlhttp.onreadystatechange = () => {
+                    if (xmlhttp.readyState == 4) {
+                        
+                        if (xmlhttp.status == 200) {
+                            if (xmlhttp.responseText == "log out") {
+                                window.alert("Thanks for using!\nLog out successfully!");
+                                location.reload();
+                            }
+                            else {
+                                let recv_obj = JSON.parse(xmlhttp.responseText);
+                                
+                                //如果是cd命令
+                                if(cmd == 'cd'){
+                                    document.getElementById('right_menu').style.cssText='display:none';
+                                    init();
+                                }
+
+                                else if(cmd == 'mkdir') {
+                                    init();
+                                    alert('新建成功');
+                                }
+
+                                else if(cmd == 'rm') {
+                                    document.getElementById('right_menu').style.cssText='display:none';
+                                    init();
+                                    alert('删除成功')
+                                }
+
+                            } 
+                        }
+                        else if (xmlhttp.status == 202) {
+                            let recv_obj = JSON.parse(xmlhttp.responseText);
+                            /*document.getElementById("result").innerHTML += document.getElementById("input").value + "<br>" 
+                                                                            + recv_obj.message + "<br>"
+                                                                            + recv_obj.username + "@sfs:" + recv_obj.dir + "# ";*/
+                            window.open(recv_obj.message);
+                        }
+                        else if (xmlhttp.status == 401) {
+                            window.alert("Authentication has expired!\nPlease login again!"); 
+                            window.location = "/login";
+                        }
+                        else {
+                           window.alert("Sorry!<br>It looks like something has gone wrong!");
+                        }
+                    }
+                }
+
+
+                let method = "POST";
+                let url = "/shell/post";  
+                let async = true;
+
+                let args = [];
+                //参数以逗号隔开
+                args =arg.split(',');
+
+                let obj = {
+                    "cmd": cmd,
+                    "args":args
+                };
+
+                xmlhttp.open(method, url, async);
+                xmlhttp.send(JSON.stringify(obj));
+            }
+
+            
+            //生成当前目录的图标
+            function generateIcon(files){
+
+                //清空面板
+                document.getElementById("file_panel").innerHTML = "";
+
+                //生成图标
+                for(i = 0 ;i < files.length;i++){
+
+                    var item = document.createElement('div');
+                    item.id = String(i);                   
+                    item.className = "items";
+
+                    //文件或文件夹名
+                    var item_name = files[i];
+
+                    var content = document.createElement('div');
+                    var img = document.createElement('img');
+                    var br = document.createElement('br');
+                    var span = document.createElement('span');
+                    
+                    if(item_name[0] == '/' ) {
+                        //去掉'/'
+                        item_name = item_name.substr(1);
+                        content.className = "folder";
+                        img.className = 'folder_img';
+                        img.src = './folder.png';
+                        span.innerHTML = '<a><herf= "#" style="color:#666666;text-decoration:none;"'+'onclick=postXMLDoc("cd","'+item_name+'")>'+item_name+'</a>';
+                        content.appendChild(img);
+                        content.appendChild(br);
+                        content.appendChild(span);
+                    }
+                    else {
+                        content.className = "file";
+                        img.className = 'file_img';
+                        img.src = './file.jpg';
+                        span.innerHTML =  '<a><herf= "#" style="color:#666666;text-decoration:none;">'+item_name+'</a>';
+                        content.appendChild(img);
+                        content.appendChild(br);
+                        content.appendChild(span);
+                    }
+
+                    item.appendChild(content);
+                    //span.innerHTML = '<a><herf= "#" style="color:#666666;text-decoration:none;"'+'onclick=clickFile("'+files[i]+'")>'+files[i]+'</a>';
+                    //var name = document.createElement('a');
+
+                   // name.style = "color:#666666;text-decoration:none;";
+                   // name.href = "javascript:void(0)";
+                   // name.innerText = files[i];
+                   // name.addEventListener('click',postXMLDoc('cd',files[i]));
+                   // span.appendChild(name);
+
+                    document.getElementById("file_panel").appendChild(item);
+                }
+            }
         </script>
     </head>
-    <body onload="postXMLDoc();">
-        <input id="input" name="input" type="text"/>
-        <!-- <button onclick="getXMLDoc();">get</button> -->
-        <button onclick="postXMLDoc();">post</button>
-        <p id="result"></p>
+
+    <body onload=init()>
+        <!--头部-->
+        <header id="navbar">
+            <div id="title">WEB文件系统</div>
+            
+            <div style="margin-left: 50px;">
+                <input  type="file" onchange="createFile()" id="new_file"></input>
+            </div>
+            <div style="margin-left: 50px;">
+                <button class="btn mr-2" type="button" onclick="createFolder()">新建文件夹</button>
+            </div>
+            <div style="margin-left: 50px;">
+                <button class="btn mr-2" type="button" onclick="postXMLDoc('cd','..')">返回上一级</button>
+            </div>
+
+            <div style="margin-left: 50px;">
+                <button class="btn mr-2" type="button" onclick="postXMLDoc('exit','')">退出</button>
+            </div>
+        </header>
+        <!--分割线-->
+        <div class="border-bottom"></div>
+
+        <!--main-->
+        <div id="main">
+        
+            <div id="file_panel">
+               
+            </div>
+        </div>
+
+        <!--右键菜单-->       
+            <div id="right_menu" class="Box" style="position:absolute;display:none;width:150px; height:auto;">
+                <ul>
+                <li class="Box-row" onclick="menuFunction('cd')">
+                    打开
+                  </li>
+                  <li class="Box-row">
+                    修改名字
+                  </li>
+                  <li class="Box-row">
+                    详细信息
+                  </li>
+                  <li class="Box-row" onclick="menuFunction('rm')">
+                    删除
+                  </li>
+                </ul>
+            </div>
     </body>
 </html>
