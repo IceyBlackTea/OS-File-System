@@ -2,7 +2,7 @@
  * @Author: One_Random
  * @Date: 2020-08-13 00:08:42
  * @LastEditors: One_Random
- * @LastEditTime: 2020-09-04 14:36:43
+ * @LastEditTime: 2020-09-06 11:53:44
  * @FilePath: /FS/server-js/sfs.js
  * @Description: Copyright © 2020 One_Random. All rights reserved.
  */
@@ -180,63 +180,193 @@ class System {
         }
     }
 
-    async list(shell) {
-        let parent = await this.find_folder_by_dir(shell.username, shell.dir);
+    async list(shell, dest_path, verbose) {
+        let path = await this.get_absolute_path(shell.dir, dest_path);
 
-        let result = await this.check_permissions(shell.username, parent, this.READ);
+        let dest = await this.find_parent_child_by_dir(shell.username, path);
 
-        if (result == this.READ) {
-            // no permissions
-            return this.READ;
-        }
-        
-        if (parent == null) {
-            this.log.push("cd: " + shell.dir + ": No such file or directory");
+        console.log(dest);
+
+        if (dest == null) {
+            this.log.push("ls: " + dest_path + ": No such file or directory");
             return false;
         }
 
-        for (let i = 0; i < parent.folders.length; i++) {
-            this.log.push(await parent.folders[i].name);
+
+        let folders = dest.parent.folders;
+        if (path == '' || path == '/') {
+            let folder = this.device;
+
+            let result = await this.check_permissions(shell.username, this.device, this.READ);
+
+            if (result == false) {
+                this.log.push("ls:" + dest_path + ": No permissions");
+                return this.READ;
+            }
+
+            for (let i = 0; i < folder.folders.length; i++) {
+                if (verbose) {
+                    this.log.push(await folder.folders[i].db_json());
+                }
+                else {
+                    this.log.push(await folder.folders[i].name);
+                }
+            }
+
+            for (let i = 0; i < folder.files.length; i++) {
+                if (verbose) {
+                    this.log.push(await file.files[i].db_json());
+                }
+                else {
+                    this.log.push(await file.files[i].name);
+                }
+            }
+            
+            return true;
+        }
+        
+        for (let i = 0; i < folders.length; i++) {
+            if (folders[i].name == '/' + dest.child_name) {
+                let folder = folders[i];
+                let result = await this.check_permissions(shell.username, folder, this.READ);
+
+                if (result == false) {
+                    this.log.push("ls:" + dest_path + ": No permissions");
+                    return this.READ;
+                }
+
+                for (let j = 0; j < folder.folders.length; j++) {
+                    if (verbose) {
+                        this.log.push(await folder.folders[j].db_json());
+                    }
+                    else {
+                        this.log.push(await folder.folders[j].name);
+                    }
+                }
+
+                for (let j = 0; j < folder.files.length; j++) {
+                    if (verbose) {
+                        this.log.push(await file.files[j].db_json());
+                    }
+                    else {
+                        this.log.push(await file.files[j].name);
+                    }
+                }
+                
+                return true;
+            }   
         }
 
-        for (let i = 0; i < parent.files.length; i++) {
-            this.log.push(await parent.files[i].name);
+        let result = await this.check_permissions(shell.username, dest.parent, this.READ);
+
+        if (result == false) {
+            this.log.push("ls:" + dest_path + ": No permissions");
+            return this.READ;
         }
+
+        let files = dest.parent.files;
+        for (let i = 0; i < files.length; i++) {
+            if (files[i].name == dest.child_name) {
+                if (verbose) {
+                    this.log.push(await files[i].db_json());
+                }
+                else {
+                    this.log.push(await files[i].name);
+                }
+                return true;
+            }
+        }
+
+        this.log.push("ls: " + dest_path + ": No such file or directory");
+        return false;
     }
+
+    // async list_dir(shell, dest_path) {
+    //     let path = await this.get_absolute_path(shell.dir, dest_path);
+
+    //     let parent = await this.find_folder_by_dir(shell.username, path);
+
+    //     let result = await this.check_permissions(shell.username, parent, this.READ);
+
+    //     if (result == this.READ) {
+    //         // no permissions
+    //         return this.READ;
+    //     }
+        
+    //     if (parent == null) {
+    //         this.log.push("ls: " + shell.dir + ": No such file or directory");
+    //         return false;
+    //     }
+
+    //     for (let i = 0; i < parent.folders.length; i++) {
+    //         this.log.push(await parent.folders[i].name);
+    //     }
+
+    //     for (let i = 0; i < parent.files.length; i++) {
+    //         this.log.push(await parent.files[i].name);
+    //     }
+    // }
+
+    // async list_file(shell, dest_path) {
+    //     let path = await this.get_absolute_path(shell.dir, dest_path);
+        
+    //     let dest = await this.find_parent_child_by_dir(shell.username, path);
+
+    //     let result = await this.check_permissions(shell.username, dest.parent, this.READ);
+
+    //     if (result == this.READ) {
+    //         // no permissions
+    //         return this.READ;
+    //     }
+        
+    //     if (dest == null) {
+    //         this.log.push("ls: " + dest_path + ": No such file or directory");
+    //         return false;
+    //     }
+
+    //     let folders = dest.parent.folders;
+    //     for (let i = 0; i < folders.length; i++) {
+    //         if (folders[i].name == dest.child_name) {
+    //             this.log.push(await folders[i].db_json());
+    //             return true;
+    //         }   
+    //     }
+
+    //     let files = dest.parent.files;
+    //     for (let i = 0; i < files.length; i++) {
+    //         if (files[i].name == dest.child_name) {
+    //             this.log.push(await files[i].db_json());
+    //             return true;
+    //         }
+    //     }
+
+    //     this.log.push("ls: " + dest_path + ": No such file or directory");
+    //     return false;
+    // }
 
     async change_dir(shell, dest_path) {
         let work_dirs = shell.dir;
         let username = shell.username;
-        
-        // if ((dest_path[0] == '.' && dest_path[1] == '/') || (dest_path == ".")) {
-        //     dest_path = work_dirs + dest_path.substring(1);
-        // }
-        // else if ((dest_path[0] == '.' && dest_path[1] == '.' && dest_path[2] == '/') || (dest_path == "..")) {
-        //     dest_path = work_dirs.substring(0, work_dirs.lastIndexOf('/')) + dest_path.substring(2);
-        // }
-        // else if (dest_path[0] != '/') {
-        //     if (work_dirs == '/') 
-        //         dest_path = work_dirs + dest_path;
-        //     else 
-        //         dest_path = work_dirs + '/' + dest_path;
-        // }
+
         let path = await this.get_absolute_path(work_dirs, dest_path)
 
         let folder = await this.find_folder_by_dir(username, path);
-        let result = await this.check_permissions(shell.username, folder, this.EXECUTE);
-        if (result == this.EXECUTE) {
-            // no permissions
-            return this.EXECUTE;
-        }
         
-        if (folder != null) {
-            shell.dir = path;
-            return true;
-        }
-        else {
+        if (folder == null) {
             this.log.push("cd: " + dest_path + ": No such file or directory");
             return false;
-        }   
+        }
+
+        console.log(folder);
+        let result = await this.check_permissions(shell.username, folder, this.EXECUTE);
+        
+        if (result == false) {
+            this.log.push("cd:" + dest_path + ": No permissions");
+            return this.EXECUTE;
+        }
+
+        shell.dir = path;
+        return true;
     }
 
     async change_mode(shell, dest_path, type, new_privi) {
@@ -264,10 +394,12 @@ class System {
             if (folder.permissions.owner == username || username == 'root') {
                 let new_privilege = '';
                 if (type == 'owner') {
-                    new_privilege = 'd' + await sub_privilege(new_privi) + folder.permissions.privilege.substring(4, 7);
+                    new_privilege = 'd' + await this.sub_privilege(new_privi) + folder.permissions.privilege.substring(4, 7);
+                    folder.permissions.privilege = new_privilege;
                 }
                 else {
-                    new_privilege = folder.permissions.privilege.substring(0, 4) + await sub_privilege(new_privi);
+                    new_privilege = folder.permissions.privilege.substring(0, 4) + await this.sub_privilege(new_privi);
+                    folder.permissions.privilege = new_privilege;
                 }
 
                 await sql_client.connect();
@@ -295,10 +427,10 @@ class System {
             if (folder.permissions.owner == username || username == 'root') {
                 let new_privilege = '';
                 if (type == 'owner') {
-                    new_privilege = await sub_privilege(new_privi) + folder.permissions.privilege.substring(4, 7);
+                    new_privilege = '-' + await this.sub_privilege(new_privi) + folder.permissions.privilege.substring(4, 7);
                 }
                 else {
-                    new_privilege = folder.permissions.privilege.substring(0, 4) + await sub_privilege(new_privi);
+                    new_privilege = folder.permissions.privilege.substring(0, 4) + await this.sub_privilege(new_privi);
                 }
 
                 await sql_client.connect();
@@ -382,6 +514,7 @@ class System {
         let dirs = path.split('/');
         if (dirs[dirs.length-1] == '')
             dirs.pop();
+            
         let child = dirs[dirs.length-1];
             
         let folder = this.device;
@@ -406,38 +539,7 @@ class System {
         };
     }
 
-    // async find_file_by_dir(username, path) {
-    //     let dest = await this.find_parent_child_by_dir(username, path);
-
-    //     if (dest == null) {
-    //         // this.log.push(": " + dest.child_name + ": No such file or directory");
-    //         return null;
-    //     } 
-
-    //     let files = dest.parent.files;
-    //     for (let i = 0; i < files.length; i++) {
-    //         if (files[i].name == '/' + dest.child_name) {
-    //             // this.log.print('already existed');
-    //             // this.log.push("mkdir: " + dest.child_name + ": File exists");
-    //             return files[i];
-    //         }
-    //     }
-    //     return null;
-    // }
-
     async new_folder(username, work_dirs, dest_path) {
-        // if ((dest_path[0] == '.' && dest_path[1] == '/') || (dest_path == ".")) {
-        //     dest_path = work_dirs + dest_path.substring(1);;
-        // }
-        // else if ((dest_path[0] == '.' && dest_path[1] == '.' && dest_path[2] == '/') || (dest_path == "..")) {
-        //     dest_path = work_dirs.substring(0, work_dirs.lastIndexOf('/')) + dest_path.substring(2);
-        // }
-        // else if (dest_path[0] != '/') {
-        //     if (work_dirs == '/') 
-        //         dest_path = work_dirs + dest_path;
-        //     else 
-        //         dest_path = work_dirs + '/' + dest_path;
-        // }
         let path = await this.get_absolute_path(work_dirs, dest_path);
 
         let dest = await this.find_parent_child_by_dir(username, path);
@@ -448,8 +550,9 @@ class System {
         }
 
         let result = await this.check_permissions(username, dest.parent, this.WRITE);
-        if (result == this.WRITE) {
-            // no permissions
+        
+        if (result == false) {
+            this.log.push('Permission denied.');
             return this.WRITE;
         }
 
@@ -469,12 +572,14 @@ class System {
                 return false;
             }
         }
-        
+
         //permissions
-        let permissions = new Permission(username, this.set_privilege(System.FOLDER, 7, 4));
+        let permissions = new Permission(username, await this.set_privilege(this.FOLDER, 7, 5));
 
         let ts = Date.parse(new Date()) / 1000;
         let folder = new Folder(UUID(), dest.parent.ID, '/' + dest.child_name, ts, permissions);
+
+        console.log(folder);
         
         dest.parent.folders.push(folder);
 
@@ -510,7 +615,7 @@ class System {
 
         //permissions
         let result = await this.check_permissions(username, dest.parent, this.WRITE);
-        if (result == this.WRITE) {
+        if (result == false) {
             // no permissions
             return this.WRITE;
         }
@@ -532,7 +637,7 @@ class System {
             }
         }
         
-        let permissions = new Permission(username, this.set_privilege(System.FOLDER, 7, 4));
+        let permissions = new Permission(username, this.set_privilege(System.FOLDER, 6, 4));
 
         let ts = Date.parse(new Date()) / 1000;
         let file = new File(UUID(), dest.parent.ID, '/' + dest.child_name, ts, permissions, 0, null);
@@ -574,7 +679,7 @@ class System {
         }
 
         let result = await this.check_permissions(username, dest.parent, this.WRITE);
-        if (result == this.WRITE) {
+        if (result == false) {
             // no permissions
             return this.WRITE;
         }
@@ -736,11 +841,11 @@ class System {
     // move_file() {};
 
 
-    set_privilege(type, user = 7, other = 7) {
+    async set_privilege(type, user, other) {
         let str = "";
-        if (type == System.FOLDER)
+        if (type == this.FOLDER)
             str = "d";
-        else if (type == System.FILE)
+        else if (type == this.FILE)
             str = "-";
         else
             return null;
@@ -748,26 +853,26 @@ class System {
         if ((user > 7 || user < 0) || (other > 7 || other < 0))
             return null;
             
-        return (str + this.sub_privilege(user) + this.sub_privilege(other));
+        return (str + await this.sub_privilege(user) + await this.sub_privilege(other));
     }
 
-    sub_privilege(privilege) {
-        let str = ""
-        if (privilege & System.READ == System.READ) {
+    async sub_privilege(privilege) {
+        let str = "";
+        if (privilege & this.READ) {
             str += "r";
         }
         else {
             str += "-"
         }
 
-        if (privilege & System.WRITE == System.WRITE) {
+        if (privilege & this.WRITE) {
             str += "w";
         }
         else {
             str += "-";
         }
 
-        if (privilege & System.EXECUTE == System.EXECUTE) {
+        if (privilege & this.EXECUTE) {
             str += "x";
         }
         else {
@@ -778,19 +883,6 @@ class System {
     }
 
     async write_file(username, work_dirs, dest_path, size) {
-        // if ((dest_path[0] == '.' && dest_path[1] == '/') || (dest_path == ".")) {
-        //     dest_path = work_dirs + dest_path.substring(1);;
-        // }
-        // else if ((dest_path[0] == '.' && dest_path[1] == '.' && dest_path[2] == '/') || (dest_path == "..")) {
-        //     dest_path = work_dirs.substring(0, work_dirs.lastIndexOf('/')) + dest_path.substring(2);
-        // }
-        // else if (dest_path[0] != '/') {
-        //     if (work_dirs == '/') 
-        //         dest_path = work_dirs + dest_path;
-        //     else 
-        //         dest_path = work_dirs + '/' + dest_path;
-        // }
-        
         let path = await this.get_absolute_path(work_dirs, dest_path);
 
         let dest = await this.find_parent_child_by_dir(username, path);
@@ -802,7 +894,7 @@ class System {
 
         //permissions
         let result = await this.check_permissions(username, dest.parent, this.WRITE);
-        if (result == this.WRITE) {
+        if (result == false) {
             // no permissions
             return this.WRITE;
         }
@@ -865,43 +957,46 @@ class System {
     }
 
     async check_permissions(username, file, opreation) {
-        let user = file.permissions.owner;
-        let privilege = file.permissions.privilege;
-        if (privilege[0] = 'd')
-            privilege.splice(0, 1);
+        if (username == 'root') 
+            return true;
 
-        if (user == username || username == 'root') {
-            if (opreation == System.READ) {
+        let user = await file.permissions.owner;
+        let privilege = await file.permissions.privilege;
+        privilege = await privilege.substring(1);
+
+        if (user == username) {
+            if (opreation == this.READ) {
                 privilege = await privilege[0];
             }
     
-            else if (opreation == System.WRITE) {
+            else if (opreation == this.WRITE) {
                 privilege = await privilege[1];
             }
     
-            else if (opreation == System.EXECUTE) {
+            else if (opreation == this.EXECUTE) {
                 privilege = await privilege[2];
             }
         }
         else {
-            if (opreation == System.READ) {
+            if (opreation == this.READ) {
                 privilege = await privilege[3];
             }
     
-            else if (opreation == System.WRITE) {
+            else if (opreation == this.WRITE) {
                 privilege = await privilege[4];
             }
     
-            else if (opreation == System.EXECUTE) {
+            else if (opreation == this.EXECUTE) {
                 privilege = await privilege[5];
             }
         }
-            
+        
+        this.log.print(privilege);
+        console.log(file.permissions);
         if (privilege == '-')
             return false;
         else 
-            return true;       
-
+            return true;
     }
 }
 
@@ -958,7 +1053,7 @@ class Log {
         if (this.send_buffers.length > 0) {
             message = this.send_buffers[0];
             for (let i = 1; i < this.send_buffers.length; i++) {
-                message += this.send_buffers[i] + "<br>";
+                message += "<br>" + this.send_buffers[i];
             }
             //message += shell.username + '@sfs:' + shell.dir + '#';
         }
@@ -984,8 +1079,6 @@ class User {
     constructor(ID, name) {
         this.ID = ID;      // ID
         this.name = name;    // 名称
-
-        this.state = System.OFFLINE;
         // this.password = null; // 密码
     }
 }

@@ -2,7 +2,7 @@
  * @Author: One_Random
  * @Date: 2020-08-23 11:17:12
  * @LastEditors: One_Random
- * @LastEditTime: 2020-09-02 21:21:35
+ * @LastEditTime: 2020-09-06 11:11:45
  * @FilePath: /FS/main.js
  * @Description: Copyright © 2020 One_Random. All rights reserved.
  */
@@ -119,13 +119,24 @@ app.post('/shell/post', (req, res) => {
                     }
                     else {
                         let dest_name = args[0];
-                        await system.delete_folder_file(shell.username, shell.dir, dest_name, 'folder');
+                        await system.delete_folder_file(shell.username, shell.dir, dest_name, 'file');
                         system.log.send(shell, res);
                     }
                 }
 
                 else if (cmd == 'ls') {
-                    await system.list(shell);
+                    if (args[0] == '-l') {
+                        let dest_name = args[1];
+                        if (dest_name == undefined)
+                            dest_name = "."
+                        await system.list(shell, dest_name, true);
+                    }
+                    else {
+                        let dest_name = args[0];
+                        if (dest_name == undefined)
+                            dest_name = "."
+                        await system.list(shell, dest_name, false);
+                    }
                     system.log.send(shell, res);
                 }
                 
@@ -139,6 +150,16 @@ app.post('/shell/post', (req, res) => {
                     await system.log.push('./file/get/a.txt')
                     system.log.print('?????');
                     system.log.send(shell, res, '202');
+                }
+
+                else if (cmd == 'chmod') {
+                    if (args[0] == 'u') {
+                        await system.change_mode(shell, args[2], 'owner', args[1]);
+                    }
+                    else if (args[0] == 'o') {
+                        await system.change_mode(shell, args[2], 'other', args[1]);
+                    }
+                    system.log.send(shell, res);
                 }
                 
                 else if (cmd == 'test') {
