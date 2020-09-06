@@ -18,7 +18,8 @@ const system = new sfs.System();
 
 const path = require('path');
 
-// app.use(express.static(__dirname));
+//css和图片 ty_updated
+app.use(express.static(__dirname+'/static'));
 
 app.get('/', (req, res) => {
     res.sendFile(__dirname + "/html/index.html");
