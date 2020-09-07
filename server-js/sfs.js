@@ -2,7 +2,7 @@
  * @Author: One_Random
  * @Date: 2020-08-13 00:08:42
  * @LastEditors: One_Random
- * @LastEditTime: 2020-09-07 15:53:28
+ * @LastEditTime: 2020-09-07 16:26:47
  * @FilePath: /FS/server-js/sfs.js
  * @Description: Copyright © 2020 One_Random. All rights reserved.
  */
@@ -468,7 +468,7 @@ class System {
     }
 
     // ???
-    delete_user(user_name) {
+    async delete_user(user_name) {
         for (let i = 0; i < this.users.length; i++) {
             if (this.users[i].name = user_name) {
                 this.users.splice(i, 1);
