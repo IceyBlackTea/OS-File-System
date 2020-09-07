@@ -2,7 +2,7 @@
  * @Author: One_Random
  * @Date: 2020-08-13 00:08:42
  * @LastEditors: One_Random
- * @LastEditTime: 2020-09-07 16:26:47
+ * @LastEditTime: 2020-09-07 17:10:31
  * @FilePath: /FS/server-js/sfs.js
  * @Description: Copyright © 2020 One_Random. All rights reserved.
  */
@@ -616,6 +616,8 @@ class System {
             return false;
         }
 
+        //console.log('???????');
+
         let folders = dest.parent.folders;
         for (let i = 0; i < folders.length; i++) {
             if (folders[i].name == '/' + dest.child_name) {
@@ -715,9 +717,9 @@ class System {
             let local_files = [];
             if(fs.existsSync("./store/")) {
                 local_files = fs.readdirSync("./store/");
-                local_files.forEach(function(local_file, index) {
-                    if (local_file == file.ID) {
-                        var curPath = "./store/" + file;
+                for (let i = 0; i < local_files.length; i++) {
+                    if (local_files[i] == file.ID) {
+                        var curPath = "./store/" + file.ID;
                         if(fs.statSync(curPath).isDirectory()) { // recurse
                             deleteall(curPath);
                         } else { // delete file
@@ -725,7 +727,7 @@ class System {
                         }
                         break;
                     }
-                });
+                }
             }
 
             return true;
@@ -1036,8 +1038,6 @@ class System {
             }
         }
         
-        this.log.print(privilege);
-        console.log(file.permissions);
         if (privilege == '-')
             return false;
         else 

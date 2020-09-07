@@ -2,7 +2,7 @@
  * @Author: One_Random
  * @Date: 2020-08-26 12:36:07
  * @LastEditors: One_Random
- * @LastEditTime: 2020-09-07 11:27:31
+ * @LastEditTime: 2020-09-07 17:03:15
  * @FilePath: /FS/html/shell.html
  * @Description: Copyright © 2020 One_Random. All rights reserved.
 -->
@@ -95,6 +95,13 @@
                         
                         if (xmlhttp.status == 200) {
                             window.alert('OK');
+                        }
+                        else if (xmlhttp.status == 403) {
+                            let recv_obj = JSON.parse(xmlhttp.responseText);
+                            document.getElementById("result").innerHTML += document.getElementById("input").value + "<br>" 
+                                                                            + recv_obj.message + "<br>"
+                                                                            + recv_obj.username + "@sfs:" + recv_obj.dir + "# ";
+                            document.getElementById("files").outerHTML = document.getElementById("files").outerHTML;
                         }
                     }
                 }
