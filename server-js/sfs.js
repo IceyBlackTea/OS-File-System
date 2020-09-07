@@ -2,7 +2,7 @@
  * @Author: One_Random
  * @Date: 2020-08-13 00:08:42
  * @LastEditors: One_Random
- * @LastEditTime: 2020-09-07 15:31:24
+ * @LastEditTime: 2020-09-07 15:53:28
  * @FilePath: /FS/server-js/sfs.js
  * @Description: Copyright © 2020 One_Random. All rights reserved.
  */
@@ -204,7 +204,6 @@ class System {
             this.log.push("ls: " + dest_path + ": No such file or directory");
             return false;
         }
-
 
         let folders = dest.parent.folders;
         if (path == '' || path == '/') {
@@ -455,23 +454,30 @@ class System {
         }
     }
 
-    async new_user(user_name) {
-        // let user_ID = ""; // // Random Generate ID
-        // let new_user = new User(user_ID, user_name);
+    async new_user(user_name, password) {
+        let user_ID = UUID();
+        let password_md5 = require('blueimp-md5')(password);
+        let created_time = Date.parse(new Date()) / 1000;
 
-        // >>>
+        let user = new User(user_ID, user_name);
+        this.users.push(user);
+
+        await sql_client.connect();
+        await sql_client.insert("user",{ID: user_ID, name: user_name, password: password_md5, created_time: created_time, user_dir: "/home"});
+        await sql_client.disconnect();
     }
 
     // ???
-    delete_user(user_ID) {
-        // // warning
+    delete_user(user_name) {
+        for (let i = 0; i < this.users.length; i++) {
+            if (this.users[i].name = user_name) {
+                this.users.splice(i, 1);
+            }
+        }
 
-        // if (user_ID == system.ROOT_USER) {
-        //     // error, can't delete
-            
-        //     return;
-        // }
-
+        await sql_client.connect();
+        await sql_client.delete("user", {name: user_name});
+        await sql_client.disconnect();
     }
 
     async get_absolute_path(work_dirs, dest_path) {
