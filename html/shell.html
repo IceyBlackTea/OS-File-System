@@ -2,7 +2,7 @@
  * @Author: One_Random
  * @Date: 2020-08-26 12:36:07
  * @LastEditors: One_Random
- * @LastEditTime: 2020-09-07 00:26:08
+ * @LastEditTime: 2020-09-07 11:27:31
  * @FilePath: /FS/html/shell.html
  * @Description: Copyright © 2020 One_Random. All rights reserved.
 -->
@@ -47,9 +47,10 @@
                         else if (xmlhttp.status == 202) {
                             let recv_obj = JSON.parse(xmlhttp.responseText);
                             document.getElementById("result").innerHTML += document.getElementById("input").value + "<br>" 
-                                                                            + recv_obj.message + "<br>"
+                                                                            // + recv_obj.message + "<br>"
                                                                             + recv_obj.username + "@sfs:" + recv_obj.dir + "# ";
                             window.open(recv_obj.message);
+                            document.getElementById("input").value = "";
                         }
                         else if (xmlhttp.status == 401) {
                             window.alert("Authentication has expired!\nPlease login again!"); 
@@ -89,20 +90,14 @@
                 let xmlhttp = XMLHTTP();
                 xmlhttp.open('POST', '/file/post')
                 xmlhttp.send(formData);
-                // if (request) {
-                //     request.onload = function () {
-                //         if (request.responseText == "1") {
-                //             alert("上传成功！");
-                //         } else {
-                //             alert("上传失败！");
-                //         }
-                //     };
-                //     // 给进度条添加监听事件，这样才有进度条的效果
-                //     request.upload.addEventListener("progress", progressChange, false)
-
-                //     // 上传表单数据
-                    
-                // }
+                xmlhttp.onreadystatechange = () => {
+                    if (xmlhttp.readyState == 4) {
+                        
+                        if (xmlhttp.status == 200) {
+                            window.alert('OK');
+                        }
+                    }
+                }
             }
         </script>
     </head>

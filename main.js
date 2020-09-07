@@ -2,7 +2,7 @@
  * @Author: One_Random
  * @Date: 2020-08-23 11:17:12
  * @LastEditors: One_Random
- * @LastEditTime: 2020-09-07 00:17:54
+ * @LastEditTime: 2020-09-07 15:23:59
  * @FilePath: /FS/main.js
  * @Description: Copyright © 2020 One_Random. All rights reserved.
  */
@@ -110,20 +110,35 @@ app.post('/shell/post', (req, res) => {
 
                 else if (cmd == 'mkdir') {
                     let folder_name = args[0];
-                    await system.new_folder(shell.username, shell.dir, folder_name);
-                    system.log.send(shell, res);
+                    let result = await system.new_folder(shell.username, shell.dir, folder_name);
+                    if (result) {
+                        system.log.send(shell, res, '200');
+                    }
+                    else {
+                        system.log.send(shell, res, '403');
+                    }
                 }
 
                 else if (cmd == 'rm') {
                     if (args[0] == '-r') {
                         let dest_name = args[1];
-                        await system.delete_folder_file(shell.username, shell.dir, dest_name, 'folder');
-                        system.log.send(shell, res);
+                        let result = await system.delete_folder_file(shell.username, shell.dir, dest_name, 'folder');
+                        if (result) {
+                            system.log.send(shell, res, '200');
+                        }
+                        else {
+                            system.log.send(shell, res, '403');
+                        }
                     }
                     else {
                         let dest_name = args[0];
-                        await system.delete_folder_file(shell.username, shell.dir, dest_name, 'file');
-                        system.log.send(shell, res);
+                        let reuslt = await system.delete_folder_file(shell.username, shell.dir, dest_name, 'file');
+                        if (result) {
+                            system.log.send(shell, res, '200');
+                        }
+                        else {
+                            system.log.send(shell, res, '403');
+                        }
                     }
                 }
 
@@ -132,37 +147,87 @@ app.post('/shell/post', (req, res) => {
                         let dest_name = args[1];
                         if (dest_name == undefined)
                             dest_name = "."
-                        await system.list(shell, dest_name, true);
+                        let result = await system.list(shell, dest_name, true);
+                        if (result) {
+                            system.log.send(shell, res, '200');
+                        }
+                        else {
+                            system.log.send(shell, res, '403');
+                        }
+                    }
+                    if (args[0] == '-folder') {
+                        let dest_name = args[1];
+                        if (dest_name == undefined)
+                            dest_name = "."
+                        let result = await system.list_folder(shell, dest_name, true);
+                        if (result) {
+                            system.log.send(shell, res, '200');
+                        }
+                        else {
+                            system.log.send(shell, res, '403');
+                        }
                     }
                     else {
                         let dest_name = args[0];
                         if (dest_name == undefined)
                             dest_name = "."
-                        await system.list(shell, dest_name, false);
+                        let result = await system.list(shell, dest_name, false);
+                        if (result) {
+                            system.log.send(shell, res, '200');
+                        }
+                        else {
+                            system.log.send(shell, res, '403');
+                        }
                     }
-                    system.log.send(shell, res);
                 }
                 
                 else if (cmd == 'cd') {
                     let dest_foder = args[0];
-                    await system.change_dir(shell, dest_foder);
-                    system.log.send(shell, res);
+                    let result = await system.change_dir(shell, dest_foder);
+                    if (result) {
+                        system.log.send(shell, res, '200');
+                    }
+                    else {
+                        system.log.send(shell, res, '403');
+                    }
                 }
 
                 else if (cmd == 'touch') {
-                    await system.log.push('./file/get/a.txt')
-                    system.log.print('?????');
-                    system.log.send(shell, res, '202');
+                    let result = await system.new_empty_file(shell.username, shell.dir, args[0]);
+                    if (result) {
+                        system.log.send(shell, res, '200');
+                    }
+                    else {
+                        system.log.send(shell, res, '403');
+                    }
+                }
+
+                else if (cmd == 'open') {
+                    let result = await system.open_file(shell.username, shell.dir, args[0]);
+                    if (result != false) {
+                        // await system.decrypt_file(result.ID, result.filename)
+                        await system.log.push('./file/get/' + result.filename);
+                        await system.log.send(shell, res, '202');
+                    }
+                    else {
+                        system.log.send(shell, res, '403');
+                    }
                 }
 
                 else if (cmd == 'chmod') {
+                    let result = null;
                     if (args[0] == 'u') {
-                        await system.change_mode(shell, args[2], 'owner', args[1]);
+                        result = await system.change_mode(shell, args[2], 'owner', args[1]);
                     }
                     else if (args[0] == 'o') {
-                        await system.change_mode(shell, args[2], 'other', args[1]);
+                        result = await system.change_mode(shell, args[2], 'other', args[1]);
                     }
-                    system.log.send(shell, res);
+                    if (result) {
+                        system.log.send(shell, res, '200');
+                    }
+                    else {
+                        system.log.send(shell, res, '403');
+                    }
                 }
                 
                 else if (cmd == 'test') {
@@ -178,23 +243,22 @@ app.post('/shell/post', (req, res) => {
                     await system.log.push(cmd + ': command not found');
                     system.log.send(shell, res);
                 }
-
             }
         }
         res.end();
     })
 });
 
-app.get('/file/get/:uuid', async (req, res) => {
+app.get('/file/get/:filename', async (req, res) => {
     const options = {
-        root: path.join(__dirname),
+        root: path.join(__dirname + '/temp'),
         dotfiles: 'deny',
         headers: {
           'Content-Type': 'text/html'
         }
       };
     
-    const fileName = req.params.uuid;
+    const fileName = req.params.filename;
     console.log(fileName);
     res.sendFile(fileName, options);
     // res.download(__dirname + '/' + fileName);//, options)//, function (err) {
