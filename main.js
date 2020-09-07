@@ -2,7 +2,7 @@
  * @Author: One_Random
  * @Date: 2020-08-23 11:17:12
  * @LastEditors: One_Random
- * @LastEditTime: 2020-09-07 17:16:15
+ * @LastEditTime: 2020-09-07 22:15:07
  * @FilePath: /FS/main.js
  * @Description: Copyright © 2020 One_Random. All rights reserved.
  */
@@ -174,7 +174,7 @@ app.post('/shell/post', (req, res) => {
                             system.log.send(shell, res, '403');
                         }
                     }
-                    if (args[0] == '-folder') {
+                    else if (args[0] == '-folder') {
                         let dest_name = args[1];
                         if (dest_name == undefined)
                             dest_name = "."
@@ -257,6 +257,7 @@ app.post('/shell/post', (req, res) => {
                     else if (args[0] == 'o') {
                         result = await system.change_mode(shell, args[2], 'other', args[1]);
                     }
+                    
                     if (result) {
                         system.log.send(shell, res, '200');
                     }

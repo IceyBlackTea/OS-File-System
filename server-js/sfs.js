@@ -2,7 +2,7 @@
  * @Author: One_Random
  * @Date: 2020-08-13 00:08:42
  * @LastEditors: One_Random
- * @LastEditTime: 2020-09-07 17:15:52
+ * @LastEditTime: 2020-09-07 22:13:30
  * @FilePath: /FS/server-js/sfs.js
  * @Description: Copyright © 2020 One_Random. All rights reserved.
  */
@@ -219,7 +219,7 @@ class System {
             for (let i = 0; i < folder.folders.length; i++) {
                 if (verbose) {
                     console.log(folder.folders[i].permissions);
-                    this.log.push(await folder.folders[i].db_json());
+                    this.log.push(JSON.stringify(await folder.folders[i].db_json()));
                 }
                 else {
                     this.log.push(await folder.folders[i].name);
@@ -228,7 +228,7 @@ class System {
 
             for (let i = 0; i < folder.files.length; i++) {
                 if (verbose) {
-                    this.log.push(await folder.files[i].db_json());
+                    this.log.push(JSON.stringify(await folder.files[i].db_json()));
                 }
                 else {
                     this.log.push(await folder.files[i].name);
@@ -250,7 +250,7 @@ class System {
 
                 for (let j = 0; j < folder.folders.length; j++) {
                     if (verbose) {
-                        this.log.push(await folder.folders[j].db_json());
+                        this.log.push(JSON.stringify(await folder.folders[j].db_json()));
                     }
                     else {
                         this.log.push(await folder.folders[j].name);
@@ -259,7 +259,7 @@ class System {
 
                 for (let j = 0; j < folder.files.length; j++) {
                     if (verbose) {
-                        this.log.push(await folder.files[j].db_json());
+                        this.log.push(JSON.stringify(await folder.files[j].db_json()));
                     }
                     else {
                         this.log.push(await folder.files[j].name);
@@ -281,7 +281,7 @@ class System {
         for (let i = 0; i < files.length; i++) {
             if (files[i].name == dest.child_name) {
                 if (verbose) {
-                    this.log.push(await files[i].db_json());
+                    this.log.push(JSON.stringify(await files[i].db_json()));
                 }
                 else {
                     this.log.push(await files[i].name);
@@ -314,7 +314,7 @@ class System {
             }
 
             if (verbose) {
-                this.log.push(await this.device.db_json());
+                this.log.push(JSON.stringify(await this.device.db_json()));
             }
             else {
                 this.log.push('/');
@@ -419,7 +419,7 @@ class System {
         }
 
         let file = null; 
-        let files = dest.parent.folders;
+        let files = dest.parent.files;
         for (let i = 0; i < files.length; i++) {
             if (files[i].name == dest.child_name) {
                 file = await files[i];
@@ -641,8 +641,6 @@ class System {
         let file = new File(UUID(), dest.parent.ID, dest.child_name, ts, permissions, 0, null);
         
         dest.parent.files.push(file);
-
-        console.log(file.db_json());
 
         await sql_client.connect();
         await sql_client.insert("storage", file.db_json());
@@ -1108,7 +1106,7 @@ class Log {
             message: message
         }
 
-        await res.status(code).send(JSON.stringify(obj));
+        res.status(code).send(JSON.stringify(obj));
         this.clear();
     }
     
