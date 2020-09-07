@@ -2,7 +2,7 @@
  * @Author: One_Random
  * @Date: 2020-08-13 00:08:42
  * @LastEditors: One_Random
- * @LastEditTime: 2020-09-07 17:10:31
+ * @LastEditTime: 2020-09-07 17:15:52
  * @FilePath: /FS/server-js/sfs.js
  * @Description: Copyright © 2020 One_Random. All rights reserved.
  */
@@ -563,7 +563,7 @@ class System {
         let result = await this.check_permissions(username, dest.parent, this.WRITE);
         
         if (result == false) {
-            this.log.push("mkdir: " + dest_path + "Permission denied");
+            this.log.push("mkdir: " + dest_path + ": Permission denied");
             return false;
         }
 
@@ -612,7 +612,7 @@ class System {
         //permissions
         let result = await this.check_permissions(username, dest.parent, this.WRITE);
         if (result == false) {
-            this.log.push("touch: " + dest_path + "Permission denied");
+            this.log.push("touch: " + dest_path + ": Permission denied");
             return false;
         }
 
@@ -668,7 +668,7 @@ class System {
 
         let result = await this.check_permissions(username, dest.parent, this.WRITE);
         if (result == false) {
-            this.log.push("rm: " + dest_path + "Permission denied");
+            this.log.push("rm: " + dest_path + ": Permission denied");
             return false;
         }
 
@@ -803,7 +803,7 @@ class System {
                 //permissions
                 let result = await this.check_permissions(username, files[i], this.WRITE);
                 if (result == false) {
-                    this.log.push("write: " + dest_path + "Permission denied");
+                    this.log.push("write: " + dest_path + ": Permission denied");
                     return false;
                 }
                 else {
@@ -839,7 +839,7 @@ class System {
 
         let result = await this.check_permissions(username, dest.parent, this.WRITE);
         if (result == false) {
-            this.log.push("rename: " + dest_path + "Permission denied");
+            this.log.push("rename: " + dest_path + ": Permission denied");
             return false;
         }
 
@@ -920,7 +920,7 @@ class System {
                 //permissions
                 let result = await this.check_permissions(username, files[i], this.READ);
                 if (result == false) {
-                    this.log.push("open: " + dest_path + "Permission denied")
+                    this.log.push("open: " + dest_path + ": Permission denied")
                     return false;
                 }
                 else {
@@ -961,7 +961,7 @@ class System {
                 //permissions
                 let result = await this.check_permissions(username, files[i], this.EXECUTE);
                 if (result == false) {
-                    this.log.push("run: " + dest_path + "Permission denied");
+                    this.log.push("run: " + dest_path + ": Permission denied");
                     return false;
                 }
                 else {

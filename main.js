@@ -2,7 +2,7 @@
  * @Author: One_Random
  * @Date: 2020-08-23 11:17:12
  * @LastEditors: One_Random
- * @LastEditTime: 2020-09-07 17:08:41
+ * @LastEditTime: 2020-09-07 17:16:15
  * @FilePath: /FS/main.js
  * @Description: Copyright © 2020 One_Random. All rights reserved.
  */
@@ -265,15 +265,6 @@ app.post('/shell/post', (req, res) => {
                     }
                 }
                 
-                else if (cmd == 'test') {
-                    await system.test();
-                    system.log.send(shell, res);
-                }
-                else if (cmd =='testb') {
-                    await system.testb();
-                    system.log.send(shell, res);
-                }
-                
                 else {
                     await system.log.push(cmd + ': command not found');
                     system.log.send(shell, res);
@@ -350,7 +341,7 @@ app.post('/file/post',
                     }
                 }
                 else {
-                    await system.log.push('folder No permission');
+                    await system.log.push('No permission');
                     await system.log.send(shell, res, '403');
                     res.end();
                 }

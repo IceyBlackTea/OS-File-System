@@ -2,7 +2,7 @@
  * @Author: One_Random
  * @Date: 2020-08-26 12:36:07
  * @LastEditors: One_Random
- * @LastEditTime: 2020-09-07 17:03:15
+ * @LastEditTime: 2020-09-07 17:13:21
  * @FilePath: /FS/html/shell.html
  * @Description: Copyright © 2020 One_Random. All rights reserved.
 -->
@@ -55,6 +55,13 @@
                         else if (xmlhttp.status == 401) {
                             window.alert("Authentication has expired!\nPlease login again!"); 
                             window.location = "/login";
+                        }
+                        else if (xmlhttp.status == 403) {
+                            let recv_obj = JSON.parse(xmlhttp.responseText);
+                            document.getElementById("result").innerHTML += document.getElementById("input").value + "<br>" 
+                                                                        + recv_obj.message + "<br>"
+                                                                        + recv_obj.username + "@sfs:" + recv_obj.dir + "# ";
+                            document.getElementById("input").value = "";
                         }
                         else {
                             document.getElementById("result").innerHTML += "Sorry!<br>It looks like something has gone wrong!<br>";
