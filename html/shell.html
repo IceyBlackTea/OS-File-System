@@ -2,7 +2,7 @@
  * @Author: One_Random
  * @Date: 2020-08-26 12:36:07
  * @LastEditors: One_Random
- * @LastEditTime: 2020-09-08 09:07:13
+ * @LastEditTime: 2020-09-08 11:26:28
  * @FilePath: /FS/html/shell.html
  * @Description: Copyright © 2020 One_Random. All rights reserved.
 -->
@@ -30,7 +30,7 @@
 
                 xmlhttp.onreadystatechange = () => {
                     if (xmlhttp.readyState == 4) {
-                        
+                        console.log(xmlhttp.status);
                         if (xmlhttp.status == 200) {
                             if (xmlhttp.responseText == "log out") {
                                 window.alert("Thanks for using!\nLog out successfully!");
@@ -44,7 +44,7 @@
                                 document.getElementById("input").value = "";
                             } 
                         }
-                        else if (xmlhttp.status == 202) {
+                        else if (xmlhttp.status == 201) {
                             let recv_obj = JSON.parse(xmlhttp.responseText);
                             document.getElementById("result").innerHTML += document.getElementById("input").value + "<br>" 
                                                                             // + recv_obj.message + "<br>"
@@ -52,6 +52,15 @@
                             window.open(recv_obj.message);
                             document.getElementById("input").value = "";
                         }
+                        else if (xmlhttp.status == 202) {
+                            let recv_obj = JSON.parse(xmlhttp.responseText);
+                            document.getElementById("result").innerHTML += document.getElementById("input").value + "<br>" 
+                                                                            // + recv_obj.message + "<br>"
+                                                                            + recv_obj.username + "@sfs:" + recv_obj.dir + "# ";
+                            console.log(recv_obj.message);
+                            document.getElementById("input").value = "";
+                        }
+
                         else if (xmlhttp.status == 401) {
                             window.alert("Authentication has expired!\nPlease login again!"); 
                             window.location = "/login";
@@ -102,6 +111,7 @@
                         
                         if (xmlhttp.status == 200) {
                             window.alert('OK');
+                            document.getElementById("files").outerHTML = document.getElementById("files").outerHTML;
                         }
                         else if (xmlhttp.status == 403) {
                             let recv_obj = JSON.parse(xmlhttp.responseText);

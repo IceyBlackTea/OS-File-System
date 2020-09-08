@@ -2,7 +2,7 @@
  * @Author: One_Random
  * @Date: 2020-08-13 00:06:56
  * @LastEditors: One_Random
- * @LastEditTime: 2020-09-01 11:13:27
+ * @LastEditTime: 2020-09-08 10:34:26
  * @FilePath: /FS/html/login.html
  * @Description: Copyright © 2020 One_Random. All rights reserved.
 --> 
@@ -39,9 +39,7 @@
                         else if (xmlhttp.status == 401){
                             window.alert("Login failed!");
                         }
-                        else {
-                            
-                        }
+                        
                     }
                 }
 
@@ -55,8 +53,6 @@
                     "username": username,
                     "password": password,
                 };
-
-                console.log(obj);
 
                 xmlhttp.open(method, url, async);
                 xmlhttp.send(JSON.stringify(obj));
