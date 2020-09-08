@@ -2,7 +2,7 @@
  * @Author: One_Random
  * @Date: 2020-08-13 00:08:42
  * @LastEditors: One_Random
- * @LastEditTime: 2020-09-07 22:13:30
+ * @LastEditTime: 2020-09-08 10:25:49
  * @FilePath: /FS/server-js/sfs.js
  * @Description: Copyright © 2020 One_Random. All rights reserved.
  */
@@ -428,13 +428,15 @@ class System {
         }
 
         if (file != null) {
-            if (folder.permissions.owner == username || username == 'root') {
+            if (file.permissions.owner == username || username == 'root') {
                 let new_privilege = '';
                 if (type == 'owner') {
-                    new_privilege = '-' + await this.sub_privilege(new_privi) + folder.permissions.privilege.substring(4, 7);
+                    new_privilege = '-' + await this.sub_privilege(new_privi) + file.permissions.privilege.substring(4, 7);
+                    file.permissions.privilege = new_privilege;
                 }
                 else {
-                    new_privilege = folder.permissions.privilege.substring(0, 4) + await this.sub_privilege(new_privi);
+                    new_privilege = file.permissions.privilege.substring(0, 4) + await this.sub_privilege(new_privi);
+                    file.permissions.privilege = new_privilege;
                 }
 
                 await sql_client.connect();

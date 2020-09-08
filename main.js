@@ -2,7 +2,7 @@
  * @Author: One_Random
  * @Date: 2020-08-23 11:17:12
  * @LastEditors: One_Random
- * @LastEditTime: 2020-09-07 22:15:07
+ * @LastEditTime: 2020-09-08 10:27:45
  * @FilePath: /FS/main.js
  * @Description: Copyright © 2020 One_Random. All rights reserved.
  */
@@ -236,7 +236,7 @@ app.post('/shell/post', (req, res) => {
                         let result = await system.open_file(shell.username, shell.dir, dest_name);
                         if (result != false) {
                             // await system.decrypt_file(result.ID, result.filename)
-                            await system.log.push('./file/get/' + result.filename);
+                            await system.log.push('./file/preview/' + result.filename);
                             await system.log.send(shell, res, '202');
                         }
                         else {
@@ -249,6 +249,25 @@ app.post('/shell/post', (req, res) => {
                     }
                 }
 
+                // else if (cmd == 'run') {
+                //     let dest_name = args[0];
+                //     if (dest_name != undefined) {
+                //         let result = await system.excute_file(shell.username, shell.dir, dest_name);
+                //         if (result != false) {
+                //             await res.sendFile(__dirname + '/temp/' + result);
+                //             // await system.log.push('./file/preview/' + result.filename);
+                //             // await system.log.send(shell, res, '202');
+                //         }
+                //         else {
+                //             system.log.send(shell, res, '403');
+                //         }
+                //     }
+                //     else {
+                //         await system.log.push('touch: missing operand');
+                //         system.log.send(shell, res, '403');
+                //     }
+                // }
+                
                 else if (cmd == 'chmod') {
                     let result = null;
                     if (args[0] == 'u') {
@@ -276,7 +295,7 @@ app.post('/shell/post', (req, res) => {
     })
 });
 
-app.get('/file/get/:filename', async (req, res) => {
+app.get('/file/preview/:filename', async (req, res) => {
     const options = {
         root: path.join(__dirname + '/temp'),
         dotfiles: 'deny',
@@ -298,8 +317,12 @@ app.get('/file/get/:filename', async (req, res) => {
     //res.end();
 });
 
+app.get('/file/run/:filename', async (req, res) => {
 
-app.post('/file/post', 
+});
+
+
+app.post('/file/upload', 
     multer({dest: 'temp'})
     .single('file'), async (req, res, next) => {
     if (req.file.length === 0) {

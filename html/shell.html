@@ -2,7 +2,7 @@
  * @Author: One_Random
  * @Date: 2020-08-26 12:36:07
  * @LastEditors: One_Random
- * @LastEditTime: 2020-09-07 17:13:21
+ * @LastEditTime: 2020-09-08 09:07:13
  * @FilePath: /FS/html/shell.html
  * @Description: Copyright © 2020 One_Random. All rights reserved.
 -->
@@ -95,7 +95,7 @@
                     formData.append("file", document.getElementById("files").files[i]);
                 }
                 let xmlhttp = XMLHTTP();
-                xmlhttp.open('POST', '/file/post')
+                xmlhttp.open('POST', '/file/upload')
                 xmlhttp.send(formData);
                 xmlhttp.onreadystatechange = () => {
                     if (xmlhttp.readyState == 4) {
