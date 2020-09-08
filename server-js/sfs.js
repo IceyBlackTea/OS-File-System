@@ -2,7 +2,7 @@
  * @Author: One_Random
  * @Date: 2020-08-13 00:08:42
  * @LastEditors: One_Random
- * @LastEditTime: 2020-09-08 10:25:49
+ * @LastEditTime: 2020-09-08 11:28:18
  * @FilePath: /FS/server-js/sfs.js
  * @Description: Copyright © 2020 One_Random. All rights reserved.
  */
@@ -334,7 +334,7 @@ class System {
                 }
 
                 if (verbose) {
-                    this.log.push(await folder.db_json());
+                    this.log.push(JSON.stringify(await folder.db_json()));
                 }
                 else {
                     this.log.push(await folder.name);
@@ -813,13 +813,24 @@ class System {
                     await sql_client.update("storage", {ID: files[i].ID}, {$set:{data: files[i].data, size: files[i].size}});
                     await sql_client.disconnect();
 
-                    return true;
+                    return files[i];
                 }
             }
         }
 
-        this.log.push("write file: " + dest.child_name + ": No such file or directory");
-        return false;
+        let file = await this.new_empty_file(username, work_dirs, dest_path);
+        if (file != false) {
+            files.data = files.ID;
+            files.size = size;
+            await sql_client.connect();
+            await sql_client.update("storage", {ID: file.ID}, {$set:{data: file.data, size: file.size}});
+            await sql_client.disconnect();
+
+            return file;
+        }
+        else {
+            return false;
+        }
     };
 
     async rename_file_folder(username, work_dirs, dest_path, new_filename) {
@@ -1088,19 +1099,23 @@ class Log {
         
     }
 
+    //ty_update 去掉<br>
     async sendOne(shell, res, code="200") {
-        await res.status(code).send(this.send_buffers[0] + "<br>");
+        //await res.status(code).send(this.send_buffers[0] + "<br>");
+        await res.status(code).send(this.send_buffers[0]+"<br>");
         this.send_buffers.splice(0, 1);
     }
 
+    //ty_update 去掉<br>
     async sendAll(shell, res, code="200") {
-        let message = "";
+        let message =new Array();
         if (this.send_buffers.length > 0) {
-            message = this.send_buffers[0];
-            for (let i = 1; i < this.send_buffers.length; i++) {
-                message += "<br>" + this.send_buffers[i];
+            //message = this.send_buffers[0];
+            for (let i = 0; i < this.send_buffers.length; i++) {
+                message.push(this.send_buffers[i]);
             }
             //message += shell.username + '@sfs:' + shell.dir + '#';
+            console.log(message);
         }
         let obj = {
             username: shell.username,
@@ -1108,7 +1123,7 @@ class Log {
             message: message
         }
 
-        res.status(code).send(JSON.stringify(obj));
+        await res.status(code).send(JSON.stringify(obj));
         this.clear();
     }
     

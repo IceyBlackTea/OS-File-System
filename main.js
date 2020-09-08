@@ -2,7 +2,7 @@
  * @Author: One_Random
  * @Date: 2020-08-23 11:17:12
  * @LastEditors: One_Random
- * @LastEditTime: 2020-09-08 10:27:45
+ * @LastEditTime: 2020-09-08 11:20:13
  * @FilePath: /FS/main.js
  * @Description: Copyright © 2020 One_Random. All rights reserved.
  */
@@ -23,6 +23,12 @@ const path = require('path');
 
 // app.use(express.static(__dirname));
 
+//css和图片 ty_updated
+app.use(express.static(__dirname+'/static'));
+
+app.get('/terminal',(req,res)=>{
+    res.sendFile(__dirname+'/html/terminal.html');
+})
 app.get('/', (req, res) => {
     res.sendFile(__dirname + "/html/index.html");
 });
@@ -106,6 +112,7 @@ app.post('/shell/post', (req, res) => {
                     system.delete_shell(uuid);
                     res.cookie('UUID', '', {maxAge: 0, httpOnly: true});
                     res.status('200').send("log out");
+                    res.end();
                 }
 
                 else if (cmd == 'mkdir') {
@@ -114,17 +121,35 @@ app.post('/shell/post', (req, res) => {
                         let result = await system.new_folder(shell.username, shell.dir, folder_name);
                         if (result) {
                             system.log.send(shell, res, '200');
+                            res.end();
                         }
                         else {
                             system.log.send(shell, res, '403');
+                            res.end();
                         }
                     }
                     else {
                         await system.log.push('mkdir: missing operand');
                         system.log.send(shell, res, '403');
+                        res.end();
                     }
                 }
 
+                //rename ty_updated
+                else if(cmd == 'rename') {
+                    let dest_path = args[0];
+                    new_filename = args[1];
+                    
+                    let result = await system.rename_file_folder(shell.username, shell.dir, dest_path ,new_filename);
+                    if (result) {
+                        system.log.send(shell, res, '200');
+                    }
+                    else {
+                        system.log.send(shell, res, '403');
+                    }
+
+                }
+                
                 else if (cmd == 'rm') {
                     if (args[0] == '-r') {
                         let dest_name = args[1];
@@ -132,14 +157,17 @@ app.post('/shell/post', (req, res) => {
                             let result = await system.delete_folder_file(shell.username, shell.dir, dest_name, 'folder');
                             if (result) {
                                 system.log.send(shell, res, '200');
+                                res.end();
                             }
                             else {
                                 system.log.send(shell, res, '403');
+                                res.end();
                             }
                         }
                         else {
                             await system.log.push('rm: missing operand');
                             system.log.send(shell, res, '403');
+                            res.end();
                         }
                         
                     }
@@ -149,14 +177,17 @@ app.post('/shell/post', (req, res) => {
                             let result = await system.delete_folder_file(shell.username, shell.dir, dest_name, 'file');
                             if (result) {
                                 system.log.send(shell, res, '200');
+                                res.end();
                             }
                             else {
                                 system.log.send(shell, res, '403');
+                                res.end();
                             }
                         }
                         else {
                             await system.log.push('rm: missing operand');
                             system.log.send(shell, res, '403');
+                            res.end();
                         }
                     }
                 }
@@ -169,9 +200,11 @@ app.post('/shell/post', (req, res) => {
                         let result = await system.list(shell, dest_name, true);
                         if (result) {
                             system.log.send(shell, res, '200');
+                            res.end();
                         }
                         else {
                             system.log.send(shell, res, '403');
+                            res.end();
                         }
                     }
                     else if (args[0] == '-folder') {
@@ -181,9 +214,11 @@ app.post('/shell/post', (req, res) => {
                         let result = await system.list_folder(shell, dest_name, true);
                         if (result) {
                             system.log.send(shell, res, '200');
+                            res.end();
                         }
                         else {
                             system.log.send(shell, res, '403');
+                            res.end();
                         }
                     }
                     else {
@@ -193,9 +228,11 @@ app.post('/shell/post', (req, res) => {
                         let result = await system.list(shell, dest_name, false);
                         if (result) {
                             system.log.send(shell, res, '200');
+                            res.end();
                         }
                         else {
                             system.log.send(shell, res, '403');
+                            res.end();
                         }
                     }
                 }
@@ -207,9 +244,11 @@ app.post('/shell/post', (req, res) => {
                     let result = await system.change_dir(shell, dest_folder);
                     if (result) {
                         system.log.send(shell, res, '200');
+                        res.end();
                     }
                     else {
                         system.log.send(shell, res, '403');
+                        res.end();
                     }
                 }
 
@@ -219,14 +258,17 @@ app.post('/shell/post', (req, res) => {
                         let result = await system.new_empty_file(shell.username, shell.dir, dest_name);
                         if (result) {
                             system.log.send(shell, res, '200');
+                            res.end();
                         }
                         else {
                             system.log.send(shell, res, '403');
+                            res.end();
                         }
                     }
                     else {
                         await system.log.push('touch: missing operand');
                         system.log.send(shell, res, '403');
+                        res.end();
                     }
                 }
 
@@ -237,36 +279,54 @@ app.post('/shell/post', (req, res) => {
                         if (result != false) {
                             // await system.decrypt_file(result.ID, result.filename)
                             await system.log.push('./file/preview/' + result.filename);
-                            await system.log.send(shell, res, '202');
+                            await system.log.send(shell, res, '201');
+                            res.end();
                         }
                         else {
                             system.log.send(shell, res, '403');
+                            res.end();
                         }
                     }
                     else {
                         await system.log.push('touch: missing operand');
                         system.log.send(shell, res, '403');
+                        res.end();
                     }
                 }
 
-                // else if (cmd == 'run') {
-                //     let dest_name = args[0];
-                //     if (dest_name != undefined) {
-                //         let result = await system.excute_file(shell.username, shell.dir, dest_name);
-                //         if (result != false) {
-                //             await res.sendFile(__dirname + '/temp/' + result);
-                //             // await system.log.push('./file/preview/' + result.filename);
-                //             // await system.log.send(shell, res, '202');
-                //         }
-                //         else {
-                //             system.log.send(shell, res, '403');
-                //         }
-                //     }
-                //     else {
-                //         await system.log.push('touch: missing operand');
-                //         system.log.send(shell, res, '403');
-                //     }
-                // }
+                else if (cmd == 'run') {
+                    let dest_name = args[0];
+                    if (dest_name != undefined) {
+                        let result = await system.excute_file(shell.username, shell.dir, dest_name);
+                        console.log(result);
+                        if (result != false) {
+                            await fs.readFile(__dirname + '/temp/' + result, async (err, data) => {
+                                if (err) {
+                                    console.log(err);
+                                } else {
+                                    console.log("data");
+                                    console.log(data);
+                                    data =  data.toString()
+                                    console.log(data);
+                                    data = data.replace(/\r/g, '\\r');
+                                    data = data.replace(/\n/g, '\\n');
+                                    await system.log.push(data.toString());
+                                    await system.log.send(shell, res, '202');
+                                    res.end();
+                                }
+                            })                    
+                        }
+                        else {
+                            system.log.send(shell, res, '403');
+                            res.end();
+                        }
+                    }
+                    else {
+                        await system.log.push('touch: missing operand');
+                        system.log.send(shell, res, '403');
+                        res.end();
+                    }
+                }
                 
                 else if (cmd == 'chmod') {
                     let result = null;
@@ -279,19 +339,22 @@ app.post('/shell/post', (req, res) => {
                     
                     if (result) {
                         system.log.send(shell, res, '200');
+                        res.end();
                     }
                     else {
                         system.log.send(shell, res, '403');
+                        res.end();
                     }
                 }
                 
                 else {
                     await system.log.push(cmd + ': command not found');
                     system.log.send(shell, res);
+                    res.end();
                 }
             }
         }
-        res.end();
+        
     })
 });
 
@@ -349,13 +412,9 @@ app.post('/file/upload',
                 let folder = await system.find_folder_by_dir(shell.username, shell.dir);
                 let result = await system.check_permissions(shell.username, folder, system.WRITE);
                 if (result) {
-                    let file = await system.new_empty_file(shell.username, shell.dir, upload_file.originalname);
+                    let file = await system.write_file(shell.username, shell.dir, "./" + upload_file.originalname, size);
                     if (file != false) {
-                        console.log(file);
-                        // await fs.renameSync('./temp/' + upload_file.filename, './store/' + file.ID);
                         await system.encrypt_file(upload_file.filename, file.ID)
-                        await system.write_file(shell.username, shell.dir, "./" + file.name, size);
-
                         await system.log.send(shell, res);
                         res.end();
                     }
@@ -363,6 +422,20 @@ app.post('/file/upload',
                         await system.log.send(shell, res, '403');
                         res.end();
                     }
+                    // let file = await system.new_empty_file(shell.username, shell.dir, upload_file.originalname);
+                    // if (file != false) {
+                    //     console.log(file);
+                    //     // await fs.renameSync('./temp/' + upload_file.filename, './store/' + file.ID);
+                    //     await system.encrypt_file(upload_file.filename, file.ID)
+                    //     await system.write_file(shell.username, shell.dir, "./" + file.name, size);
+
+                    //     await system.log.send(shell, res);
+                    //     res.end();
+                    // }
+                    // else {
+                    //     await system.log.send(shell, res, '403');
+                    //     res.end();
+                    // }
                 }
                 else {
                     await system.log.push('No permission');
