@@ -1,0 +1,90 @@
+<!--
+ * @Author: One_Random
+ * @Date: 2020-07-06 11:17:25
+ * @LastEditors: One_Random
+ * @LastEditTime: 2020-07-15 15:24:15
+ * @FilePath: /OS/index.html
+ * @Description: Copyright © 2020 One_Random. All rights reserved.
+-->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>memory allocation</title>
+    <style>
+        .input_number_default {
+            width: 5%;
+            margin-right: 3%;
+        }
+    </style>
+    <script src="./js/memory.js"></script>
+    <script src="./js/lib/d3.v5.min.js"></script>
+</head>
+<body>
+    <div id="set_up">
+        <div id="set_up_system">
+            <h2>Memory Allocation</h2>
+            <h4>Set up the system</h4>
+            the size of memory: <input type="text" style="width: 8%;" id="max_mem_size"> 
+                <select id="setofmem"> 
+                    <option value=1>bytes</option>
+                    <option value=1024>KB</option>
+                    <option value=1048576>MB</option>
+                </select>
+            <br><br>
+            allocation algorithm: 
+                <select id="algorithm"> 
+                    <option value="FF">FF</option>
+                    <option value="BF">BF</option>
+                    <option value="WF">WF</option>
+                </select>
+            <br><br>
+            <button onclick="set_up_system()">set up the system</button>
+        </div>
+        <div id="set_up_jobs">
+            <h4>Set up jobs</h4>
+            <button onclick="remove_all_jobs()" id="clean_button">remove all jobs</button>
+            <br><br>
+            <input type="file" accept="application/json" id="json_file">
+            <button onclick="read_from_file()" id="read_button">read from the file</button>
+            <br><br>
+            <div id="unconfirmed_jobs">
+                <div id="input_jobs" style="display: inline;">
+                    order number: <input type="number" class="input_number_default" id="order_number">
+                    size: <input type="number" style="width: 5%;" id="size">
+                        <select style="margin-right: 3%;" id="setofjob"> 
+                            <option value=1>bytes</option>
+                            <option value=1024>KB</option>
+                            <option value=1028576>MB</option>
+                        </select>
+                    in time: <input type="number" class="input_number_default" id="in_time">
+                    run time: <input type="number" class="input_number_default" id="run_time">
+                </div>
+                <button onclick="add_a_job()">add the job</button>
+            </div>
+            <div id="confirmed_jobs">
+            </div>
+            <br><br>
+        </div>
+        <div id="operate">
+            <button onclick="system.step">go step</button>
+            <button onclick="system.run();anime = new Anime();">run</button>
+            stop time: <input type="number" style="width: 5%;" id="second">
+            <button onclick="step()">stop at</button>
+            <button onclick="system.print()">information</button>
+            <br><br>
+            <button onclick="anime.step_play()">step play</button>
+            <button onclick="anime.auto_play()">auto play</button>
+            <button onclick="anime.go_on = !anime.go_on; anime.auto_play()">pause</button>
+        </div>
+    </div>
+    <div id="visable">
+        <div id="figure">
+            <svg id="visiable_svg"></svg>
+        </div>
+        <script src="./js/d3.js"></script>
+        <script src="./js/setup.js"></script>
+    </div>
+</body>
+</html>

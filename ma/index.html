@@ -72,6 +72,8 @@
     <script type="text/javascript">
         // var currprogram = "news";
         var flag = 0;
+        var origin_jobs = new Array();
+        var jobs = new Array();
         function changeNav() {
             if (flag == 0){
                 flag = 1;
@@ -106,9 +108,144 @@
             var ui =document.getElementById("showtips");      
             ui.style.visibility="visible";  
         }
+
+        function XMLHTTP() {
+            let xmlhttp;
+            if (window.XMLHttpRequest)
+                xmlhttp=new XMLHttpRequest();
+            else {
+                xmlhttp=new ActiveXObject("Microsoft.XMLHTTP");
+                windows.alert("Sorry!\nThis type of browser is not supported!");
+            }
+
+            return xmlhttp;
+        }
+
+        function getXMLDoc(url) {
+            let xmlhttp = XMLHTTP();
+
+            xmlhttp.onreadystatechange = () => {
+                if (xmlhttp.readyState == 4) {
+                    if (xmlhttp.status == 200) {
+                        return xmlhttp.responseText;
+                    }
+                }
+            }
+
+            let method = "GET";
+            // let cmd = input.splice(0, 1);
+            // let args = input;
+            let async = true;
+
+            // let obj = {
+            //     "cmd": cmd,
+            //     "args": args
+            // };
+
+            xmlhttp.open(method, url, async);
+            //xmlhttp.send(JSON.stringify(obj));
+            xmlhttp.send();
+        }
+
+        function postXMLDoc(url) {
+            let xmlhttp = XMLHTTP();
+
+            xmlhttp.onreadystatechange = () => {
+                if (xmlhttp.readyState == 4) {
+                    if (xmlhttp.status == 200) {
+                        return xmlhttp.responseText;
+                    }
+                }
+            }
+
+            let method = "POST";
+            //let url = "/system/users";  
+            // let cmd = input.splice(0, 1);
+            // let args = input;
+            let async = true;
+
+            // let obj = {
+            //     "cmd": cmd,
+            //     "args": args
+            // };
+
+            xmlhttp.open(method, url, async);
+            //xmlhttp.send(JSON.stringify(obj));
+            xmlhttp.send();
+        }
+
+        async function get_users_info() {
+            let xmlhttp = XMLHTTP();
+
+            xmlhttp.onreadystatechange = () => {
+                if (xmlhttp.readyState == 4) {
+                    if (xmlhttp.status == 200) {
+                        console.log(xmlhttp.responseText);
+                    }
+                }
+            }
+
+            let method = "GET";
+            let url = '/system/users';
+            let async = true;
+
+            xmlhttp.open(method, url, async);
+            xmlhttp.send();
+        }
+
+        async function get_shells_info() {
+            let xmlhttp = XMLHTTP();
+
+            xmlhttp.onreadystatechange = () => {
+                if (xmlhttp.readyState == 4) {
+                    if (xmlhttp.status == 200) {
+                        console.log(xmlhttp.responseText);
+                    }
+                }
+            }
+
+            let method = "GET";
+            let url = '/system/shells';
+            let async = true;
+
+            xmlhttp.open(method, url, async);
+            xmlhttp.send();
+        }
+
+        async function get_jobs_info() {
+            let xmlhttp = XMLHTTP();
+
+            xmlhttp.onreadystatechange = () => {
+                if (xmlhttp.readyState == 4) {
+                    if (xmlhttp.status == 200) {
+                        console.log(xmlhttp.responseText);
+                        origin_jobs = JSON.parse((JSON.parse(xmlhttp.responseText)).message);
+                        console.log(origin_jobs);
+                    }
+                }
+            }
+
+            let method = "GET";
+            let url = '/system/jobs';
+            let async = true;
+
+            xmlhttp.open(method, url, async);
+            xmlhttp.send();
+        }
+
+        async function origin_to_jobs() {
+            jobs = new Array();
+            for (let i = 0; i < origin_jobs.length; i++) {
+                origin = await origin_jobs[i];
+                job = new Job(origin.order_number, origin.size, origin.in_time, origin.run_time);
+                await jobs.push(job);
+                console.log(job);
+            }
+            // origin_jobs.length = 0;
+        }
     </script>
 
-    <body>
+    <body onload="get_users_info();get_shells_info();get_jobs_info();">
         <!-- <div id="mySidenav" class="sidenav">
             <a href='javascript:changeNav()'>Tips</a>
         </div>
@@ -130,10 +267,10 @@
                 <div id="userinfo" class="Box" style="width: 90%; height: 30%; margin-left:9%; margin-top: 8%;">
                     <div class="Box-row" style="background-color:white; height: inherit; width: 100%; ">
                         <div>
-                            <span style="color:grey; font-size: 20px; float: left;">  
+                            <span style="color:grey; font-size: x-large; float: left;">  
                                 User Management
                             </span>
-                            <button class="btn btn-sm" id='btn-reset' type="button" onclick="create_user();" style="background-color: #2ea44e; color:white; width: 78px; margin-left: 65px; float: left; margin-top: 1%;">create</button>
+                            <button class="btn btn-sm" id='btn-create' type="button" onclick="create_user();" style="background-color: #2ea44e; color:white; width: 78px; margin-left: 65px; float: left; margin-top: 2%;">create</button>
                         </div>
                             <div id="showuser"  class="one-fourth column" style="height: 90%; overflow: auto; background-color: white; width: 100%; border-radius:3px; margin-top: 4%;">
                                 <table>
@@ -150,9 +287,9 @@
 
                 <div id="shellinfo" class="Box" style="width: 90%; height: 43%; margin-left:9%; margin-top: 4%;">
                     <div class="Box-row" style="background-color:white; height: inherit; width: 100%; ">
-                        <span style="color:grey; font-size: 20px; float: left;">  
-                            Shell
-                        </span>
+                        <h3 class="m-0" style="color:grey; ">  
+                            Shell 
+                        </h3>
                             <div id="showshell"  class="one-fourth column" style="height: 90%; overflow: auto; background-color: white; width: 100%; border-radius:3px; margin-top: 4%;">
                                 <table>
                                     <thead>

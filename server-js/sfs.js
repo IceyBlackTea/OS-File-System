@@ -2,7 +2,7 @@
  * @Author: One_Random
  * @Date: 2020-08-13 00:08:42
  * @LastEditors: One_Random
- * @LastEditTime: 2020-09-08 11:28:18
+ * @LastEditTime: 2020-09-09 16:48:12
  * @FilePath: /FS/server-js/sfs.js
  * @Description: Copyright © 2020 One_Random. All rights reserved.
  */
@@ -37,9 +37,12 @@ class System {
         this.update = 0;
 
         this.shells = new Array();
+        this.jobs = new Array();
         this.log = new Log();
         
         this.verbose = true;
+
+        this.start = Date.parse(new Date()) / 1000;
 
         this.setup();
         // log
@@ -480,6 +483,14 @@ class System {
         await sql_client.connect();
         await sql_client.delete("user", {name: user_name});
         await sql_client.disconnect();
+    }
+
+    async get_users_info() {
+        return (JSON.stringify(this.users));
+    }
+
+    async get_shells_info() {
+        return (JSON.stringify(this.shells));
     }
 
     async get_absolute_path(work_dirs, dest_path) {
@@ -1054,6 +1065,18 @@ class System {
         else 
             return true;
     }
+
+    async add_jobs(job) {
+        this.jobs.push(job);
+    }
+
+    async get_jobs_info(job) {
+        return (JSON.stringify(this.jobs));
+    }
+
+    // async delete_jobs(job) {
+        
+    // }
 }
 
 /*
@@ -1229,6 +1252,19 @@ class Folder extends Binary {
     }
 }
 
+class Job {
+    constructor(order_number, name, username, size, in_time, run_time) {
+        this.order_number = order_number; // 作业序号
+        this.name = name;
+        this.username = username;
+        this.size = size; // 作业使用的内存大小
+        this.in_time = in_time; // 作业进入内存时间
+        this.run_time = run_time; // 作业运行需要的时间
+        this.start_time = -1; // 作业开始运行的时间
+        this.end_time = -1; // 作业结束运行的时间
+    }
+}
+
 function UUID() {
     var d = new Date().getTime();
     // if (window.performance && typeof window.performance.now === "function") {
@@ -1247,6 +1283,7 @@ function UUID() {
 module.exports = {
     System: System,
     Shell: Shell,
+    Job: Job,
     User: User,
     Permission: Permission,
     File: File,
