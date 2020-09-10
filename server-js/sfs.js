@@ -2,7 +2,7 @@
  * @Author: One_Random
  * @Date: 2020-08-13 00:08:42
  * @LastEditors: One_Random
- * @LastEditTime: 2020-09-08 11:28:18
+ * @LastEditTime: 2020-09-10 11:24:57
  * @FilePath: /FS/server-js/sfs.js
  * @Description: Copyright © 2020 One_Random. All rights reserved.
  */
@@ -37,9 +37,12 @@ class System {
         this.update = 0;
 
         this.shells = new Array();
+        this.jobs = new Array();
         this.log = new Log();
         
         this.verbose = true;
+
+        this.start = Date.parse(new Date()) / 1000;
 
         this.setup();
         // log
@@ -67,23 +70,9 @@ class System {
         }     
     }
 
-    async clean_temp_files() {
-        let files = [];
-        if(fs.existsSync("./temp/")) {
-            files = fs.readdirSync("./temp/");
-            files.forEach(function(file, index) {
-                var curPath = "./temp/" + file;
-                if(fs.statSync(curPath).isDirectory()) { // recurse
-                    deleteall(curPath);
-                } else { // delete file
-                    fs.unlinkSync(curPath);
-                }
-            });
-        }
-    }
-
     async setup_storage() {
-        await this.clean_temp_files();
+        clean_files("./temp/");
+        clean_files("./downloads/");
 
         var storage = await sql_client.find("storage");
 
@@ -480,6 +469,14 @@ class System {
         await sql_client.connect();
         await sql_client.delete("user", {name: user_name});
         await sql_client.disconnect();
+    }
+
+    async get_users_info() {
+        return (JSON.stringify(this.users));
+    }
+
+    async get_shells_info() {
+        return (JSON.stringify(this.shells));
     }
 
     async get_absolute_path(work_dirs, dest_path) {
@@ -938,7 +935,7 @@ class System {
                     let ts = Date.parse(new Date()) / 1000;
                     await this.decrypt_file(await files[i].ID, ts);
 
-                    return {uuid: files[i].ID, filename: ts};
+                    return {uuid: files[i].ID, origin: files[i].name, filename: ts};
                 }
             }
         }
@@ -1054,6 +1051,18 @@ class System {
         else 
             return true;
     }
+
+    async add_jobs(job) {
+        this.jobs.push(job);
+    }
+
+    async get_jobs_info(job) {
+        return (JSON.stringify(this.jobs));
+    }
+
+    // async delete_jobs(job) {
+        
+    // }
 }
 
 /*
@@ -1099,33 +1108,33 @@ class Log {
         
     }
 
-    //ty_update 去掉<br>
-    async sendOne(shell, res, code="200") {
-        //await res.status(code).send(this.send_buffers[0] + "<br>");
-        await res.status(code).send(this.send_buffers[0]+"<br>");
-        this.send_buffers.splice(0, 1);
+ //ty_update 去掉<br>
+ async sendOne(shell, res, code="200") {
+    //await res.status(code).send(this.send_buffers[0] + "<br>");
+    await res.status(code).send(this.send_buffers[0]+"<br>");
+    this.send_buffers.splice(0, 1);
+}
+
+//ty_update 去掉<br>
+async sendAll(shell, res, code="200") {
+    let message =new Array();
+    if (this.send_buffers.length > 0) {
+        //message = this.send_buffers[0];
+        for (let i = 0; i < this.send_buffers.length; i++) {
+            message.push(this.send_buffers[i]);
+        }
+        //message += shell.username + '@sfs:' + shell.dir + '#';
+        console.log(message);
+    }
+    let obj = {
+        username: shell.username,
+        dir: shell.dir,
+        message: message
     }
 
-    //ty_update 去掉<br>
-    async sendAll(shell, res, code="200") {
-        let message =new Array();
-        if (this.send_buffers.length > 0) {
-            //message = this.send_buffers[0];
-            for (let i = 0; i < this.send_buffers.length; i++) {
-                message.push(this.send_buffers[i]);
-            }
-            //message += shell.username + '@sfs:' + shell.dir + '#';
-            console.log(message);
-        }
-        let obj = {
-            username: shell.username,
-            dir: shell.dir,
-            message: message
-        }
-
-        await res.status(code).send(JSON.stringify(obj));
-        this.clear();
-    }
+    await res.status(code).send(JSON.stringify(obj));
+    this.clear();
+}
     
 }
 
@@ -1233,6 +1242,19 @@ class Folder extends Binary {
     }
 }
 
+class Job {
+    constructor(order_number, name, username, size, in_time, run_time) {
+        this.order_number = order_number; // 作业序号
+        this.name = name;
+        this.username = username;
+        this.size = size; // 作业使用的内存大小
+        this.in_time = in_time; // 作业进入内存时间
+        this.run_time = run_time; // 作业运行需要的时间
+        this.start_time = -1; // 作业开始运行的时间
+        this.end_time = -1; // 作业结束运行的时间
+    }
+}
+
 function UUID() {
     var d = new Date().getTime();
     // if (window.performance && typeof window.performance.now === "function") {
@@ -1246,11 +1268,30 @@ function UUID() {
     return uuid;
 }
 
+function clean_files(path) {
+    let files = [];
+    if(fs.existsSync(path)) {
+        files = fs.readdirSync(path);
+        files.forEach((file, index) => {
+            let curPath = path + file;
+            if(fs.statSync(curPath).isDirectory()) { // recurse
+                clean_files(curPath + '/');
+            } 
+            else { // delete file
+                fs.unlinkSync(curPath);
+            }
+        });
+        if (path != './temp/' && path != './downloads/')
+            fs.rmdirSync(path);
+    }
+}
+
 
 // exports
 module.exports = {
     System: System,
     Shell: Shell,
+    Job: Job,
     User: User,
     Permission: Permission,
     File: File,

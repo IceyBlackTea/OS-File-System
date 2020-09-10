@@ -2,7 +2,7 @@
  * @Author: One_Random
  * @Date: 2020-08-23 11:17:12
  * @LastEditors: One_Random
- * @LastEditTime: 2020-09-08 11:20:13
+ * @LastEditTime: 2020-09-10 11:13:48
  * @FilePath: /FS/main.js
  * @Description: Copyright © 2020 One_Random. All rights reserved.
  */
@@ -16,6 +16,7 @@ app.use(cookieParser());
 const multer = require('multer');
 
 const sfs = require('./server-js/sfs.js');
+const Job = require('./server-js/sfs.js').Job;
 const system = new sfs.System();
 
 const fs = require('fs');
@@ -26,12 +27,13 @@ const path = require('path');
 //css和图片 ty_updated
 app.use(express.static(__dirname+'/static'));
 
-app.get('/terminal',(req,res)=>{
-    res.sendFile(__dirname+'/html/terminal.html');
-})
 app.get('/', (req, res) => {
     res.sendFile(__dirname + "/html/index.html");
 });
+
+app.get('/terminal',(req,res)=>{
+    res.sendFile(__dirname+'/html/terminal.html');
+})
 
 app.get('/shell', async (req, res) => {
     console.log(system.shells);
@@ -58,12 +60,11 @@ app.get('/shell', async (req, res) => {
 
 app.get('/login', (req, res) => {
     if (req.cookies.UUID != undefined) {
-        res.status('200').send("<script type=\"text/javascript\">window.alert(\"You have logged in!\");" + "\\n" + "window.location=\"./shell\";</script>");
+        res.status('200').send("<script type=\"text/javascript\">window.alert(\"You have logged in!\");" + "\n" + "window.location=\"./shell\";</script>");
         res.end();
     }
     else 
         res.sendFile(__dirname + "/html/login.html");
-    
 });
 
 app.post('/login', (req, res) => {
@@ -116,6 +117,14 @@ app.post('/shell/post', (req, res) => {
                 }
 
                 else if (cmd == 'mkdir') {
+                    let index = system.jobs.length;
+                    let size = Math.floor(Math.random()*10);
+                    let in_time = Math.floor(((Date.parse(new Date()) / 1000) - system.start)/5);
+                    let run_time = Math.floor(Math.random()*10);
+
+                    let job = new Job(index+1, cmd, shell.username, size, in_time, run_time);
+                    await system.add_jobs(job);
+
                     let folder_name = args[0];
                     if (folder_name != '' && folder_name != undefined ){
                         let result = await system.new_folder(shell.username, shell.dir, folder_name);
@@ -135,22 +144,15 @@ app.post('/shell/post', (req, res) => {
                     }
                 }
 
-                //rename ty_updated
-                else if(cmd == 'rename') {
-                    let dest_path = args[0];
-                    new_filename = args[1];
-                    
-                    let result = await system.rename_file_folder(shell.username, shell.dir, dest_path ,new_filename);
-                    if (result) {
-                        system.log.send(shell, res, '200');
-                    }
-                    else {
-                        system.log.send(shell, res, '403');
-                    }
-
-                }
-                
                 else if (cmd == 'rm') {
+                    let index = system.jobs.length;
+                    let size = Math.floor(Math.random()*10);
+                    let in_time = Math.floor(((Date.parse(new Date()) / 1000) - system.start)/5);
+                    let run_time = Math.floor(Math.random()*10);
+
+                    let job = new Job(index+1, cmd, shell.username, size, in_time, run_time);
+                    await system.add_jobs(job);
+                    
                     if (args[0] == '-r') {
                         let dest_name = args[1];
                         if (dest_name != '' && dest_name != undefined) {
@@ -193,6 +195,14 @@ app.post('/shell/post', (req, res) => {
                 }
 
                 else if (cmd == 'ls') {
+                    let index = system.jobs.length;
+                    let size = Math.floor(Math.random()*10);
+                    let in_time = Math.floor(((Date.parse(new Date()) / 1000) - system.start)/5);
+                    let run_time = Math.floor(Math.random()*10);
+
+                    let job = new Job(index+1, cmd, shell.username, size, in_time, run_time);
+                    await system.add_jobs(job);
+
                     if (args[0] == '-l') {
                         let dest_name = args[1];
                         if (dest_name == undefined || dest_name == '')
@@ -238,6 +248,14 @@ app.post('/shell/post', (req, res) => {
                 }
                 
                 else if (cmd == 'cd') {
+                    let index = system.jobs.length;
+                    let size = Math.floor(Math.random()*10);
+                    let in_time = Math.floor(((Date.parse(new Date()) / 1000) - system.start)/5);
+                    let run_time = Math.floor(Math.random()*10);
+
+                    let job = new Job(index+1, cmd, shell.username, size, in_time, run_time);
+                    await system.add_jobs(job);
+                    
                     let dest_folder = args[0];
                     if (dest_folder == undefined)
                             dest_folder = "."
@@ -253,6 +271,14 @@ app.post('/shell/post', (req, res) => {
                 }
 
                 else if (cmd == 'touch') {
+                    let index = system.jobs.length;
+                    let size = Math.floor(Math.random()*10);
+                    let in_time = Math.floor(((Date.parse(new Date()) / 1000) - system.start)/5);
+                    let run_time = Math.floor(Math.random()*10);
+
+                    let job = new Job(index+1, cmd, shell.username, size, in_time, run_time);
+                    await system.add_jobs(job);
+
                     let dest_name = args[0];
                     if (dest_name != undefined) {
                         let result = await system.new_empty_file(shell.username, shell.dir, dest_name);
@@ -273,6 +299,14 @@ app.post('/shell/post', (req, res) => {
                 }
 
                 else if (cmd == 'open') {
+                    let index = system.jobs.length;
+                    let size = Math.floor(Math.random()*10);
+                    let in_time = Math.floor(((Date.parse(new Date()) / 1000) - system.start)/5);
+                    let run_time = Math.floor(Math.random()*10);
+
+                    let job = new Job(index+1, cmd, shell.username, size, in_time, run_time);
+                    await system.add_jobs(job);
+                    
                     let dest_name = args[0];
                     if (dest_name != undefined) {
                         let result = await system.open_file(shell.username, shell.dir, dest_name);
@@ -294,7 +328,63 @@ app.post('/shell/post', (req, res) => {
                     }
                 }
 
+                else if (cmd == 'download') {
+                    let index = system.jobs.length;
+                    let size = Math.floor(Math.random()*10);
+                    let in_time = Math.floor(((Date.parse(new Date()) / 1000) - system.start)/5);
+                    let run_time = Math.floor(Math.random()*10);
+
+                    let job = new Job(index+1, cmd, shell.username, size, in_time, run_time);
+                    await system.add_jobs(job);
+                    
+                    let dest_name = args[0];
+                    if (dest_name != undefined) {
+                        let result = await system.open_file(shell.username, shell.dir, dest_name);
+                        if (result != false) {
+                            await system.log.push('./file/download/' + result.filename + '/' + result.origin);
+                            await fs.mkdirSync(__dirname + '/downloads/' + result.filename);
+                            
+                            await system.log.send(shell, res, '201');
+
+                            await fs.renameSync(__dirname + '/temp/' + result.filename, __dirname + '/downloads/' + result.filename + '/' + result.origin);
+                            res.end();
+                        }
+                        else {
+                            system.log.send(shell, res, '403');
+                            res.end();
+                        }
+                    }
+                    else {
+                        await system.log.push('touch: missing operand');
+                        system.log.send(shell, res, '403');
+                        res.end();
+                    }
+                }
+
+                //rename ty_updated
+                else if(cmd == 'rename') {
+                    let dest_path = args[0];
+                    new_filename = args[1];
+                    
+                    let result = await system.rename_file_folder(shell.username, shell.dir, dest_path ,new_filename);
+                    if (result) {
+                        system.log.send(shell, res, '200');
+                    }
+                    else {
+                        system.log.send(shell, res, '403');
+                    }
+
+                }
+                
                 else if (cmd == 'run') {
+                    let index = system.jobs.length;
+                    let size = Math.floor(Math.random()*100);
+                    let in_time = Math.floor(((Date.parse(new Date()) / 1000) - system.start)/5);
+                    let run_time = Math.floor(Math.random()*20);
+
+                    let job = new Job(index+1, cmd, shell.username, size, in_time, run_time);
+                    await system.add_jobs(job);
+
                     let dest_name = args[0];
                     if (dest_name != undefined) {
                         let result = await system.excute_file(shell.username, shell.dir, dest_name);
@@ -304,8 +394,6 @@ app.post('/shell/post', (req, res) => {
                                 if (err) {
                                     console.log(err);
                                 } else {
-                                    console.log("data");
-                                    console.log(data);
                                     data =  data.toString()
                                     console.log(data);
                                     data = data.replace(/\r/g, '\\r');
@@ -329,6 +417,14 @@ app.post('/shell/post', (req, res) => {
                 }
                 
                 else if (cmd == 'chmod') {
+                    let index = system.jobs.length;
+                    let size = Math.floor(Math.random()*10);
+                    let in_time = Math.floor(((Date.parse(new Date()) / 1000) - system.start)/5);
+                    let run_time = Math.floor(Math.random()*10);
+
+                    let job = new Job(index+1, cmd, shell.username, size, in_time, run_time);
+                    await system.add_jobs(job);
+
                     let result = null;
                     if (args[0] == 'u') {
                         result = await system.change_mode(shell, args[2], 'owner', args[1]);
@@ -367,8 +463,7 @@ app.get('/file/preview/:filename', async (req, res) => {
         }
       };
     
-    const fileName = req.params.filename;
-    console.log(fileName);
+    let fileName = req.params.filename;
     res.sendFile(fileName, options);
     // res.download(__dirname + '/' + fileName);//, options)//, function (err) {
     //     if (err) {
@@ -380,10 +475,12 @@ app.get('/file/preview/:filename', async (req, res) => {
     //res.end();
 });
 
-app.get('/file/run/:filename', async (req, res) => {
-
+app.get('/file/download/:ts/:filename', async (req, res) => {
+    let ts = req.params.ts;
+    let fileName = req.params.filename;
+    res.download(__dirname + '/downloads/' + ts + '/' + fileName, fileName);
+    //res.end();
 });
-
 
 app.post('/file/upload', 
     multer({dest: 'temp'})
@@ -409,6 +506,14 @@ app.post('/file/upload',
                 res.end();
             }
             else {
+                let index = system.jobs.length;
+                let size = Math.floor(Math.random()*10);
+                let in_time = Math.floor(((Date.parse(new Date()) / 1000) - system.start)/5);
+                let run_time = Math.floor(Math.random()*10);
+          
+                let job = new Job(index+1, 'write', shell.username, size, in_time, run_time);
+                await system.add_jobs(job);
+                
                 let folder = await system.find_folder_by_dir(shell.username, shell.dir);
                 let result = await system.check_permissions(shell.username, folder, system.WRITE);
                 if (result) {
@@ -443,6 +548,92 @@ app.post('/file/upload',
                     res.end();
                 }
             }
+        }
+    }
+});
+
+app.use(express.static(__dirname + '/ma'));
+
+app.get('/manager', async (req, res) => {
+    console.log(system.shells);
+    let uuid = req.cookies.UUID;
+    if (uuid == undefined) {
+        res.status('401').send("<script type=\"text/javascript\">window.location=\"./login\";</script>");
+        res.end();
+    }
+    else {
+        let shell = await system.get_shell(uuid);
+        
+        if (shell == null || shell.username != 'root') {
+            res.cookie('UUID', '', {maxAge: 0, httpOnly: true});
+            res.status('401').send("<script type=\"text/javascript\">window.alert(\"No permssions!" + "\\n" + "Please login again!\");" + "\n" + "window.location=\"./login\";</script>");
+            res.end();
+        }
+        else {
+            res.sendFile(__dirname + "/ma/index.html");
+        }
+    }
+});
+
+app.get('/system/users', async (req, res) => {
+    let uuid = req.cookies.UUID;
+    if (uuid == undefined) {
+        res.status('401').send("<script type=\"text/javascript\">window.location=\"./login\";</script>");
+        res.end();
+    }
+    else {
+        let shell = await system.get_shell(uuid);
+        
+        if (shell == null || shell.username != 'root') {
+            res.cookie('UUID', '', {maxAge: 0, httpOnly: true});
+            res.status('401').send("<script type=\"text/javascript\">window.alert(\"No permssions." + "\\n" + "Please login again!\");" + "\n" + "window.location=\"./login\";</script>");
+            res.end();
+        }
+        else {
+            system.log.push(await system.get_users_info());
+            system.log.send(shell, res);
+        }
+    }
+});
+
+app.get('/system/shells', async (req, res) => {
+    let uuid = req.cookies.UUID;
+    if (uuid == undefined) {
+        res.status('401').send("<script type=\"text/javascript\">window.location=\"./login\";</script>");
+        res.end();
+    }
+    else {
+        let shell = await system.get_shell(uuid);
+        
+        if (shell == null || shell.username != 'root') {
+            res.cookie('UUID', '', {maxAge: 0, httpOnly: true});
+            res.status('401').send("<script type=\"text/javascript\">window.alert(\"No permssions." + "\\n" + "Please login again!\");" + "\n" + "window.location=\"./login\";</script>");
+            res.end();
+        }
+        else {
+            system.log.push(await system.get_shells_info());
+            system.log.send(shell, res);
+        }
+    }
+});
+
+app.get('/system/jobs', async (req, res) => {
+    let uuid = req.cookies.UUID;
+    if (uuid == undefined) {
+        res.status('401').send("<script type=\"text/javascript\">window.location=\"./login\";</script>");
+        res.end();
+    }
+    else {
+        let shell = await system.get_shell(uuid);
+        
+        if (shell == null || shell.username != 'root') {
+            res.cookie('UUID', '', {maxAge: 0, httpOnly: true});
+            res.status('401').send("<script type=\"text/javascript\">window.alert(\"No permssions." + "\\n" + "Please login again!\");" + "\n" + "window.location=\"./login\";</script>");
+            res.end();
+        }
+        else {
+            system.log.push(await system.get_jobs_info());
+            system.log.send(shell, res);
         }
     }
 });
