@@ -2,7 +2,7 @@
  * @Author: One_Random
  * @Date: 2020-08-13 00:08:42
  * @LastEditors: One_Random
- * @LastEditTime: 2020-09-10 10:53:17
+ * @LastEditTime: 2020-09-10 11:24:57
  * @FilePath: /FS/server-js/sfs.js
  * @Description: Copyright © 2020 One_Random. All rights reserved.
  */
@@ -70,23 +70,9 @@ class System {
         }     
     }
 
-    async clean_temp_files() {
-        let files = [];
-        if(fs.existsSync("./temp/")) {
-            files = fs.readdirSync("./temp/");
-            files.forEach(function(file, index) {
-                var curPath = "./temp/" + file;
-                if(fs.statSync(curPath).isDirectory()) { // recurse
-                    deleteall(curPath);
-                } else { // delete file
-                    fs.unlinkSync(curPath);
-                }
-            });
-        }
-    }
-
     async setup_storage() {
-        await this.clean_temp_files();
+        clean_files("./temp/");
+        clean_files("./downloads/");
 
         var storage = await sql_client.find("storage");
 
@@ -1276,6 +1262,24 @@ function UUID() {
         return (c == 'x' ? r : (r & 0x3 | 0x8)).toString(16);
     });
     return uuid;
+}
+
+function clean_files(path) {
+    let files = [];
+    if(fs.existsSync(path)) {
+        files = fs.readdirSync(path);
+        files.forEach((file, index) => {
+            let curPath = path + file;
+            if(fs.statSync(curPath).isDirectory()) { // recurse
+                clean_files(curPath + '/');
+            } 
+            else { // delete file
+                fs.unlinkSync(curPath);
+            }
+        });
+        if (path != './temp/' && path != './downloads/')
+            fs.rmdirSync(path);
+    }
 }
 
 
