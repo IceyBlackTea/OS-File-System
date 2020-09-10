@@ -2,7 +2,7 @@
  * @Author: One_Random
  * @Date: 2020-08-13 00:08:42
  * @LastEditors: One_Random
- * @LastEditTime: 2020-09-09 16:48:12
+ * @LastEditTime: 2020-09-10 10:53:17
  * @FilePath: /FS/server-js/sfs.js
  * @Description: Copyright © 2020 One_Random. All rights reserved.
  */
@@ -949,7 +949,7 @@ class System {
                     let ts = Date.parse(new Date()) / 1000;
                     await this.decrypt_file(await files[i].ID, ts);
 
-                    return {uuid: files[i].ID, filename: ts};
+                    return {uuid: files[i].ID, origin: files[i].name, filename: ts};
                 }
             }
         }
