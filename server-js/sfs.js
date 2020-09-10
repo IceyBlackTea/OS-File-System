@@ -2,7 +2,7 @@
  * @Author: One_Random
  * @Date: 2020-08-13 00:08:42
  * @LastEditors: One_Random
- * @LastEditTime: 2020-09-10 11:24:57
+ * @LastEditTime: 2020-09-10 17:41:30
  * @FilePath: /FS/server-js/sfs.js
  * @Description: Copyright © 2020 One_Random. All rights reserved.
  */
@@ -446,6 +446,11 @@ class System {
     }
 
     async new_user(user_name, password) {
+        for (let i = 0; i < this.users.length; i++) {
+            if (user_name == this.users[i].name) {
+                return false;
+            }
+        }
         let user_ID = UUID();
         let password_md5 = require('blueimp-md5')(password);
         let created_time = Date.parse(new Date()) / 1000;
@@ -454,21 +459,30 @@ class System {
         this.users.push(user);
 
         await sql_client.connect();
-        await sql_client.insert("user",{ID: user_ID, name: user_name, password: password_md5, created_time: created_time, user_dir: "/home"});
+        await sql_client.insert("users",{ID: user_ID, name: user_name, password: password_md5, created_time: created_time, user_dir: "/home"});
         await sql_client.disconnect();
+
+        return true;
     }
 
     // ???
     async delete_user(user_name) {
+        if (user_name == 'root')
+            return false;
+
+        let flag = false;
         for (let i = 0; i < this.users.length; i++) {
             if (this.users[i].name = user_name) {
-                this.users.splice(i, 1);
+                await this.users.splice(i, 1);
+                await sql_client.connect();
+                await sql_client.delete("users", {name: user_name});
+                await sql_client.disconnect();
+
+                return true;
             }
         }
-
-        await sql_client.connect();
-        await sql_client.delete("user", {name: user_name});
-        await sql_client.disconnect();
+        
+        return false;
     }
 
     async get_users_info() {
@@ -1108,29 +1122,33 @@ class Log {
         
     }
 
-    async sendOne(shell, res, code="200") {
-        await res.status(code).send(this.send_buffers[0] + "<br>");
-        this.send_buffers.splice(0, 1);
+ //ty_update 去掉<br>
+ async sendOne(shell, res, code="200") {
+    //await res.status(code).send(this.send_buffers[0] + "<br>");
+    await res.status(code).send(this.send_buffers[0]+"<br>");
+    this.send_buffers.splice(0, 1);
+}
+
+//ty_update 去掉<br>
+async sendAll(shell, res, code="200") {
+    let message =new Array();
+    if (this.send_buffers.length > 0) {
+        //message = this.send_buffers[0];
+        for (let i = 0; i < this.send_buffers.length; i++) {
+            message.push(this.send_buffers[i]);
+        }
+        //message += shell.username + '@sfs:' + shell.dir + '#';
+        console.log(message);
+    }
+    let obj = {
+        username: shell.username,
+        dir: shell.dir,
+        message: message
     }
 
-    async sendAll(shell, res, code="200") {
-        let message = "";
-        if (this.send_buffers.length > 0) {
-            message = this.send_buffers[0];
-            for (let i = 1; i < this.send_buffers.length; i++) {
-                message += "<br>" + this.send_buffers[i];
-            }
-            //message += shell.username + '@sfs:' + shell.dir + '#';
-        }
-        let obj = {
-            username: shell.username,
-            dir: shell.dir,
-            message: message
-        }
-
-        res.status(code).send(JSON.stringify(obj));
-        this.clear();
-    }
+    await res.status(code).send(JSON.stringify(obj));
+    this.clear();
+}
     
 }
 
@@ -1145,6 +1163,8 @@ class User {
         this.ID = ID;      // ID
         this.name = name;    // 名称
         // this.password = null; // 密码
+        this.created_time = Date.parse(new Date()) / 1000;
+        this.user_dir = '/home';
     }
 }
 

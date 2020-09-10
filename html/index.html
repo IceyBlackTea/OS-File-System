@@ -1,272 +1,37 @@
+<!--
+ * @Author: One_Random
+ * @Date: 2020-08-13 00:06:56
+ * @LastEditors: One_Random
+ * @LastEditTime: 2020-08-26 12:41:42
+ * @FilePath: /FS/html/index.html
+ * @Description: Copyright © 2020 One_Random. All rights reserved.
+--> 
 <!DOCTYPE html>
 <html lang="en">
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link href="./css/primer.css" rel="stylesheet" type="text/css"/>
-    <title>Management system</title>
-    <style type="text/css">
-    body{
-        margin: 0;
-        padding: 0;
-        /* height: 100%; */
-        background-color:whitesmoke;
-    }
-    .job{
-        height:25px;
-        width:80px;
-        border-radius:4px;
-        border:1px solid #DBDBDB;
-    }
-
-    #main {
-        transition: margin-right .5s;/*主体内容延迟0.5s整体y右移动*/
-        padding: 0;
-    }
-
-    /*add table css*/
-    table {
-        border-collapse: collapse;
-        width:100%
-    }
-
-    table td,
-    table th {
-        font-weight: 600;
-        padding: 4px 7px;
-        text-align: center;
-        
-    }
-
-    table td {
-        color: #575757;
-        text-align: center;
-    }
-
-    table th:first-child,
-    table td:first-child {
-        padding-left: 8px;
-        text-align: center;
-    }
-    
-    table tr.default th {
-        border: 0;
-        text-align: center;
-    }
-
-    table tr.default td {
-        border: 0;
-        text-align: center;
-    }
-
-    table tr.default:nth-child(even) {
-        background: #f2f2f2;
-    }
-
-    table tr.default:nth-child(odd)  {
-        background: #fff;
-    }
-    </style>
-
-    <script type="text/javascript" src="./js/lib/d3.v5.min.js"></script>
-    <script type="text/javascript" src="./js/memory.js"></script>
-    <script type="text/javascript">
-        // var currprogram = "news";
-        var flag = 0;
-        function changeNav() {
-            if (flag == 0){
-                flag = 1;
-                document.getElementById("mySidenav").style.width = "400px";
-                document.getElementById("main").style.marginRight = "160px";
+    <head></head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>index</title>
+        <style>
+            *{
+                margin: 0;
+                padding: 0;
             }
-            else if (flag == 1){
-                flag = 0;
-                document.getElementById("mySidenav").style.width = "0";
-                document.getElementById("main").style.marginRight= "0";
-            }       
-        }
-
-        function display(ID){
-            var str = ID.replace(ID.substring(0, 1), ID.substring(0, 1).toUpperCase())
-            document.title = str + "-Rua!";
-
-            document.getElementById(currprogram).style.display='none';
-            document.getElementById(ID).style.display='block';
-            currprogram = ID;
-            
-            changeNav(); 
-        }
-
-        function hide_tips()  
-        {       
-            var ui =document.getElementById("showtips");      
-            ui.style.visibility="hidden";  
-        }
-        function show_tips()
-        {
-            var ui =document.getElementById("showtips");      
-            ui.style.visibility="visible";  
-        }
-    </script>
-
+    
+            html,body{
+                width: 100%;
+                height: 100%;
+            }
+    
+            .container{
+                width: 100%;
+                height: 100%;
+            }
+        </style>
+    </head>
     <body>
-        <!-- <div id="mySidenav" class="sidenav">
-            <a href='javascript:changeNav()'>Tips</a>
+        <div class="container">
+            <iframe id="shell-frame" src="./shell" frameborder=0 width="100%" height="100%"></iframe>
         </div>
-         -->
-        <div  class="anim-scale-in bg-gray-dark text-white p-2">
-            <!-- <div style="display:flex;flex-direction:row"> -->
-            <h2 class="anim-fade-in" style="display:inline; color:white; margin-left: 40px;">
-                Management System
-            </h2>
-            <h3 class="btn btn-sm" type="button" style="border-color: #555454; border-width: 1px; display:inline; color: white; margin-left: 2%; background-color: #24292e;" onclick="show_tips()"> 
-                Tips
-            </h3> 
-            <!-- </div> -->
-        </div>
-
-    <div id="main" class="anim-fade-in">
-        <div class="application-main" style="display:flex;height: auto;" >
-            <div class="col-3 " style="height:inherit; width: 32%;">
-                <div id="userinfo" class="Box" style="width: 90%; height: 30%; margin-left:9%; margin-top: 8%;">
-                    <div class="Box-row" style="background-color:white; height: inherit; width: 100%; ">
-                        <div>
-                            <span style="color:grey; font-size: 20px; float: left;">  
-                                User Management
-                            </span>
-                            <button class="btn btn-sm" id='btn-reset' type="button" onclick="create_user();" style="background-color: #2ea44e; color:white; width: 78px; margin-left: 65px; float: left; margin-top: 1%;">create</button>
-                        </div>
-                            <div id="showuser"  class="one-fourth column" style="height: 90%; overflow: auto; background-color: white; width: 100%; border-radius:3px; margin-top: 4%;">
-                                <table>
-                                    <thead>
-                                        <tr class="user">
-                                            <th>username</th>
-                                            <th>operation</th>
-                                        </tr>
-                                    </thead>
-                                </table>
-                            </div>
-                    </div>
-                </div> 
-
-                <div id="shellinfo" class="Box" style="width: 90%; height: 43%; margin-left:9%; margin-top: 4%;">
-                    <div class="Box-row" style="background-color:white; height: inherit; width: 100%; ">
-                        <span style="color:grey; font-size: 20px; float: left;">  
-                            Shell
-                        </span>
-                            <div id="showshell"  class="one-fourth column" style="height: 90%; overflow: auto; background-color: white; width: 100%; border-radius:3px; margin-top: 4%;">
-                                <table>
-                                    <thead>
-                                        <tr class="user">
-                                            <th>username</th>
-                                            <th>ip_address</th>
-                                        </tr>
-                                    </thead>
-                                </table>
-                            </div>
-                    </div>
-                </div>  
-
-                <div id = "showtips" class="Box" style="width: 430px; margin-left: 9%; margin-top: 3%; height: 18%;">
-                    <div class="Box-row" style="background-color:#79b8ff; width: inherit; height:100%">
-                        <div style="display:flex;flex-direction:row">
-                            <h3 class="m-0" style="color: snow;">
-                                Tips
-                            </h3>
-                            <button class="btn-octicon" type="button" aria-label="Trashcan icon" onclick="hide_tips()" style="margin-left: 330px;">
-                              
-                                <svg class="octicon octicon-trashcan" viewBox="0 0 12 16" version="1.1" width="12" height="16" aria-hidden="true">
-                                <path fill-rule="evenodd" d="M11 2H9c0-.55-.45-1-1-1H5c-.55 0-1 .45-1 1H2c-.55 0-1 .45-1 1v1c0 .55.45 1 1 1v9c0 .55.45 1 1 1h7c.55 0 1-.45 1-1V5c.55 0 1-.45 1-1V3c0-.55-.45-1-1-1zm-1 12H3V5h1v8h1V5h1v8h1V5h1v8h1V5h1v9zm1-10H2V3h9v1z"></path></svg>
-                            </button>  
-                        </div> 
-
-                        <div> 
-                            <h5 style="color: snow;">
-                                1、Manage the user system by creation or deletion. 
-                            </h5>
-                            <h5 style="color: snow;">
-                                2、The file system will be simulated as job on the right.
-                            </h5>
-                            <h5 style="color: snow;">
-                                3、The simulation is in detailed information and animation.
-                            </h5>
-                            <br>
-                        </div>
-                    </div>
-                </div>  
-            </div>    
-           
-                <div class="box-shadow p-3" style="display:flex; height:780px; background-color:whitesmoke; width: 40% ">
-                    <br>
-                    <div id="visiable" style="margin-top: 4%; margin-left: 5%;">
-                        <h2 class="m-0">
-                            Play the animation
-                        </h2>
-                        <br>
-                        <div id="control" style="margin-top: 2%;">
-                            <sapn>
-                                allocation algorithm
-                                <select id="algorithm" style="border-radius:2px;border:1px solid #DBDBDB"> 
-                                    <option value="FF">FF(首先适应算法)</option>
-                                    <option value="BF">BF(最佳适应算法)</option>
-                                    <option value="WF">WF(最差适应算法)</option>
-                                </select>
-                            </sapn>
-                            <button class="btn btn-sm" id='btn-reset' type="button" onclick="load_jobs();" style="background-color: #2ea44e; color:white; width: 78px; margin-left: 40px;">set jobs</button>
-                            <br>
-                            <br>
-                            <button class="btn btn-sm" type="button" style="width: 80px;" onclick="anime.step_play();">step play</button>
-                            <button class="btn btn-sm" type="button" style="width: 80px; margin-left: 100px;" onclick="anime.auto_play();">auto play</button>
-                            <button id="btn-pause" class="btn btn-sm" type="button" style="background-color:#79b8ff; color: white; width: 70px; margin-left: 48px;" onclick="pause();">pause</button>
-                            <!-- <button class="btn btn-sm" type="button" style="width: 60px; background-color: #e34c25; color:white; margin-right: 5px;" onclick="pause(); document.getElementById('btn-pause').innerHTML = 'pause'; set_up_system(); reset_svg(400, 400, input_size); anime = new Anime();">reset</button> -->
-                        </div>
-                        <br><br>
-                        <div id="figure">
-                            <svg id="visiable_svg"></svg>
-                        </div>
-                        <script src="./js/d3.js"></script>
-                        <script src="./js/setup.js"></script>
-                      
-                    </div>
-                </div>
-
-                <div class="box-shadow p-3" style="height:780px; background-color:whitesmoke; width: 28%;">
-                    <!-- <div class="box-shadow p-3" style="height:800px; background-color:#24292e; width: 400px; margin-top: 0px;"> -->
-                        <br>
-                        <div id="showprocess" class="Box" style="width: 85%; height: 45%; margin-left:0px; margin-top: 0px;">
-                            <div class="Box-row" style="background-color:white; height: 100%; width: 100%; ">
-                                <h4 class="m-0" style="color:grey; ">  
-                                    Operation Process
-                                </h4>
-                                    <div id="process" class="one-fourth column" style="height: 90%; overflow: auto; background-color: white; width: 100%; border-radius:3px;">
-                                    </div>
-                            </div>
-                        </div>
-                        <br><br>
-                        <div id="showjob" class="Box" style="overflow:auto; width: 85%; height: 45%;margin-left:0px;">
-                            <div class="Box-row" style="background-color:white;  height: 100%; width: 100%;">
-                                <h4 class="m-0" style="color:grey;">
-                                    Jobs added to the system
-                                </h4>
-                                    <table>
-                                        <thead>
-                                            <tr class="default">
-                                                <th>id</th>
-                                                <th>size</th>
-                                                <th>in at</th>
-                                                <th>run time</th>
-                                                <th>start at</th>
-                                                <th>end at</th>
-                                            </tr>
-                                        </thead>
-                                            <tbody id="jobs">
-                                            </tbody>
-                                    </table>
-                            </div>
-                        </div>
-                    <!-- </div> -->
-                </div>
-              
-        </div>
-    </div>
     </body>
 </html>

@@ -245,7 +245,7 @@
         }
     </script>
 
-    <body onload="get_users_info();get_shells_info();get_jobs_info();">
+    <body onload="get_users_info();get_shells_info();get_jobs_info()">
         <!-- <div id="mySidenav" class="sidenav">
             <a href='javascript:changeNav()'>Tips</a>
         </div>
@@ -263,14 +263,14 @@
 
     <div id="main" class="anim-fade-in">
         <div class="application-main" style="display:flex;height: auto;" >
-            <div class="col-3 " style="height:inherit; width: 32%;">
-                <div id="userinfo" class="Box" style="width: 90%; height: 30%; margin-left:9%; margin-top: 8%;">
+            <div class="col-3 " style="height:inherit; width: 28%;">
+                <div id="userinfo" class="Box" style="width: 85%; height: 30%; margin-left:9%; margin-top: 8%;">
                     <div class="Box-row" style="background-color:white; height: inherit; width: 100%; ">
                         <div>
-                            <span style="color:grey; font-size: x-large; float: left;">  
+                            <span style="color:grey; font-size: 20px; float: left;">  
                                 User Management
                             </span>
-                            <button class="btn btn-sm" id='btn-create' type="button" onclick="create_user();" style="background-color: #2ea44e; color:white; width: 78px; margin-left: 65px; float: left; margin-top: 2%;">create</button>
+                            <button class="btn btn-sm" id='btn-create' type="button" onclick="create_user();" style="background-color: #2ea44e; color:white; width: 78px; margin-left: 48px; float: left; margin-top: 1%;">create</button>
                         </div>
                             <div id="showuser"  class="one-fourth column" style="height: 90%; overflow: auto; background-color: white; width: 100%; border-radius:3px; margin-top: 4%;">
                                 <table>
@@ -285,11 +285,11 @@
                     </div>
                 </div> 
 
-                <div id="shellinfo" class="Box" style="width: 90%; height: 43%; margin-left:9%; margin-top: 4%;">
+                <div id="shellinfo" class="Box" style="width: 85%; height: 43%; margin-left:9%; margin-top: 4%;">
                     <div class="Box-row" style="background-color:white; height: inherit; width: 100%; ">
-                        <h3 class="m-0" style="color:grey; ">  
-                            Shell 
-                        </h3>
+                        <span style="color:grey; font-size: 20px; float: left;">  
+                            Shell
+                        </span>
                             <div id="showshell"  class="one-fourth column" style="height: 90%; overflow: auto; background-color: white; width: 100%; border-radius:3px; margin-top: 4%;">
                                 <table>
                                     <thead>
@@ -303,13 +303,13 @@
                     </div>
                 </div>  
 
-                <div id = "showtips" class="Box" style="width: 430px; margin-left: 9%; margin-top: 3%; height: 18%;">
+                <div id = "showtips" class="Box" style="width: 359px; margin-left: 9%; margin-top: 3%; height: 18%;">
                     <div class="Box-row" style="background-color:#79b8ff; width: inherit; height:100%">
                         <div style="display:flex;flex-direction:row">
                             <h3 class="m-0" style="color: snow;">
                                 Tips
                             </h3>
-                            <button class="btn-octicon" type="button" aria-label="Trashcan icon" onclick="hide_tips()" style="margin-left: 330px;">
+                            <button class="btn-octicon" type="button" aria-label="Trashcan icon" onclick="hide_tips()" style="margin-left: 280px;">
                               
                                 <svg class="octicon octicon-trashcan" viewBox="0 0 12 16" version="1.1" width="12" height="16" aria-hidden="true">
                                 <path fill-rule="evenodd" d="M11 2H9c0-.55-.45-1-1-1H5c-.55 0-1 .45-1 1H2c-.55 0-1 .45-1 1v1c0 .55.45 1 1 1v9c0 .55.45 1 1 1h7c.55 0 1-.45 1-1V5c.55 0 1-.45 1-1V3c0-.55-.45-1-1-1zm-1 12H3V5h1v8h1V5h1v8h1V5h1v8h1V5h1v9zm1-10H2V3h9v1z"></path></svg>
@@ -318,13 +318,10 @@
 
                         <div> 
                             <h5 style="color: snow;">
-                                1、Manage the user system by creation or deletion. 
+                                1、The file system will be simulated as job on the right.
                             </h5>
                             <h5 style="color: snow;">
-                                2、The file system will be simulated as job on the right.
-                            </h5>
-                            <h5 style="color: snow;">
-                                3、The simulation is in detailed information and animation.
+                                2、The simulation is in detailed information and animation.
                             </h5>
                             <br>
                         </div>
@@ -391,8 +388,8 @@
                                                 <th>size</th>
                                                 <th>in at</th>
                                                 <th>run time</th>
-                                                <th>start at</th>
-                                                <th>end at</th>
+                                                <th>user</th>  <!--owner=user -->
+                                                <th>cmd</th>
                                             </tr>
                                         </thead>
                                             <tbody id="jobs">

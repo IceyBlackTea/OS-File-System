@@ -10,7 +10,9 @@ const MongoClient = require('mongodb').MongoClient;
 
 class MongoDB {
     constructor() {
-        let url_base = "bW9uZ29kYjovL2ZzX2FkbWluOmFkbWluQDEyNy4wLjAuMToyNzAxNy8/YXV0aFNvdXJjZT1maWxlX3N5c3RlbSZyZWFkUHJlZmVyZW5jZT1wcmltYXJ5JmFwcG5hbWU9TW9uZ29EQiUyMENvbXBhc3MlMjBDb21tdW5pdHkmc3NsPWZhbHNl";
+        //let url_base = "bW9uZ29kYjovL2ZzX2FkbWluOmFkbWluQDEyNy4wLjAuMToyNzAxNy8/YXV0aFNvdXJjZT1maWxlX3N5c3RlbSZyZWFkUHJlZmVyZW5jZT1wcmltYXJ5JmFwcG5hbWU9TW9uZ29EQiUyMENvbXBhc3MlMjBDb21tdW5pdHkmc3NsPWZhbHNl";
+        //ty_updated url换成了服务器ip，方便测试
+        let url_base = "bW9uZ29kYjovL2ZzX2FkbWluOmFkbWluQDEwMS4xMzIuMTQ1LjIwNzoyNzAxNy8/YXV0aFNvdXJjZT1maWxlX3N5c3RlbSZyZWFkUHJlZmVyZW5jZT1wcmltYXJ5JmFwcG5hbWU9TW9uZ29EQiUyMENvbXBhc3MlMjBDb21tdW5pdHkmc3NsPWZhbHNl";
         this.url = Buffer.from(url_base, 'base64').toString();
     }
 

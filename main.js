@@ -2,7 +2,7 @@
  * @Author: One_Random
  * @Date: 2020-08-23 11:17:12
  * @LastEditors: One_Random
- * @LastEditTime: 2020-09-10 11:13:48
+ * @LastEditTime: 2020-09-10 17:45:43
  * @FilePath: /FS/main.js
  * @Description: Copyright © 2020 One_Random. All rights reserved.
  */
@@ -24,9 +24,16 @@ const path = require('path');
 
 // app.use(express.static(__dirname));
 
+//css和图片 ty_updated
+app.use(express.static(__dirname+'/static'));
+
 app.get('/', (req, res) => {
     res.sendFile(__dirname + "/html/index.html");
 });
+
+app.get('/terminal',(req,res)=>{
+    res.sendFile(__dirname+'/html/terminal.html');
+})
 
 app.get('/shell', async (req, res) => {
     console.log(system.shells);
@@ -111,9 +118,9 @@ app.post('/shell/post', (req, res) => {
 
                 else if (cmd == 'mkdir') {
                     let index = system.jobs.length;
-                    let size = Math.floor(Math.random()*10);
+                    let size = Math.floor(Math.random()*9 + 1);
                     let in_time = Math.floor(((Date.parse(new Date()) / 1000) - system.start)/5);
-                    let run_time = Math.floor(Math.random()*10);
+                    let run_time = Math.floor(Math.random()*9 + 1);
 
                     let job = new Job(index+1, cmd, shell.username, size, in_time, run_time);
                     await system.add_jobs(job);
@@ -139,9 +146,9 @@ app.post('/shell/post', (req, res) => {
 
                 else if (cmd == 'rm') {
                     let index = system.jobs.length;
-                    let size = Math.floor(Math.random()*10);
+                    let size = Math.floor(Math.random()*9 + 1);
                     let in_time = Math.floor(((Date.parse(new Date()) / 1000) - system.start)/5);
-                    let run_time = Math.floor(Math.random()*10);
+                    let run_time = Math.floor(Math.random()*9 + 1);
 
                     let job = new Job(index+1, cmd, shell.username, size, in_time, run_time);
                     await system.add_jobs(job);
@@ -189,9 +196,9 @@ app.post('/shell/post', (req, res) => {
 
                 else if (cmd == 'ls') {
                     let index = system.jobs.length;
-                    let size = Math.floor(Math.random()*10);
+                    let size = Math.floor(Math.random()*9 + 1);
                     let in_time = Math.floor(((Date.parse(new Date()) / 1000) - system.start)/5);
-                    let run_time = Math.floor(Math.random()*10);
+                    let run_time = Math.floor(Math.random()*9 + 1);
 
                     let job = new Job(index+1, cmd, shell.username, size, in_time, run_time);
                     await system.add_jobs(job);
@@ -242,9 +249,9 @@ app.post('/shell/post', (req, res) => {
                 
                 else if (cmd == 'cd') {
                     let index = system.jobs.length;
-                    let size = Math.floor(Math.random()*10);
+                    let size = Math.floor(Math.random()*9 + 1);
                     let in_time = Math.floor(((Date.parse(new Date()) / 1000) - system.start)/5);
-                    let run_time = Math.floor(Math.random()*10);
+                    let run_time = Math.floor(Math.random()*9 + 1);
 
                     let job = new Job(index+1, cmd, shell.username, size, in_time, run_time);
                     await system.add_jobs(job);
@@ -265,9 +272,9 @@ app.post('/shell/post', (req, res) => {
 
                 else if (cmd == 'touch') {
                     let index = system.jobs.length;
-                    let size = Math.floor(Math.random()*10);
+                    let size = Math.floor(Math.random()*9 + 1);
                     let in_time = Math.floor(((Date.parse(new Date()) / 1000) - system.start)/5);
-                    let run_time = Math.floor(Math.random()*10);
+                    let run_time = Math.floor(Math.random()*9 + 1);
 
                     let job = new Job(index+1, cmd, shell.username, size, in_time, run_time);
                     await system.add_jobs(job);
@@ -293,9 +300,9 @@ app.post('/shell/post', (req, res) => {
 
                 else if (cmd == 'open') {
                     let index = system.jobs.length;
-                    let size = Math.floor(Math.random()*10);
+                    let size = Math.floor(Math.random()*9 + 1);
                     let in_time = Math.floor(((Date.parse(new Date()) / 1000) - system.start)/5);
-                    let run_time = Math.floor(Math.random()*10);
+                    let run_time = Math.floor(Math.random()*9 + 1);
 
                     let job = new Job(index+1, cmd, shell.username, size, in_time, run_time);
                     await system.add_jobs(job);
@@ -323,9 +330,9 @@ app.post('/shell/post', (req, res) => {
 
                 else if (cmd == 'download') {
                     let index = system.jobs.length;
-                    let size = Math.floor(Math.random()*10);
+                    let size = Math.floor(Math.random()*9 + 1);
                     let in_time = Math.floor(((Date.parse(new Date()) / 1000) - system.start)/5);
-                    let run_time = Math.floor(Math.random()*10);
+                    let run_time = Math.floor(Math.random()*9 + 1);
 
                     let job = new Job(index+1, cmd, shell.username, size, in_time, run_time);
                     await system.add_jobs(job);
@@ -354,11 +361,26 @@ app.post('/shell/post', (req, res) => {
                     }
                 }
 
+                //rename ty_updated
+                else if(cmd == 'rename') {
+                    let dest_path = args[0];
+                    new_filename = args[1];
+                    
+                    let result = await system.rename_file_folder(shell.username, shell.dir, dest_path ,new_filename);
+                    if (result) {
+                        system.log.send(shell, res, '200');
+                    }
+                    else {
+                        system.log.send(shell, res, '403');
+                    }
+
+                }
+                
                 else if (cmd == 'run') {
                     let index = system.jobs.length;
-                    let size = Math.floor(Math.random()*100);
+                    let size = Math.floor(Math.random()*99 + 1);
                     let in_time = Math.floor(((Date.parse(new Date()) / 1000) - system.start)/5);
-                    let run_time = Math.floor(Math.random()*20);
+                    let run_time = Math.floor(Math.random()*19 + 1);
 
                     let job = new Job(index+1, cmd, shell.username, size, in_time, run_time);
                     await system.add_jobs(job);
@@ -570,6 +592,7 @@ app.get('/system/users', async (req, res) => {
         else {
             system.log.push(await system.get_users_info());
             system.log.send(shell, res);
+            res.end();
         }
     }
 });
@@ -591,6 +614,7 @@ app.get('/system/shells', async (req, res) => {
         else {
             system.log.push(await system.get_shells_info());
             system.log.send(shell, res);
+            res.end();
         }
     }
 });
@@ -612,8 +636,95 @@ app.get('/system/jobs', async (req, res) => {
         else {
             system.log.push(await system.get_jobs_info());
             system.log.send(shell, res);
+            res.end();
         }
     }
 });
 
+app.post('/users/new', async (req, res) => {
+    let uuid = req.cookies.UUID;
+    if (uuid == undefined) {
+        res.status('401').send("<script type=\"text/javascript\">window.location=\"./login\";</script>");
+        res.end();
+    }
+    else {
+        let shell = await system.get_shell(uuid);
+        
+        if (shell == null || shell.username != 'root') {
+            res.cookie('UUID', '', {maxAge: 0, httpOnly: true});
+            res.status('401').send("<script type=\"text/javascript\">window.alert(\"No permssions." + "\\n" + "Please login again!\");" + "\n" + "window.location=\"./login\";</script>");
+            res.end();
+        }
+        else {
+            let result = await system.new_user();
+            if (result == ture) {
+                system.log.send(shell, res);
+            }
+            else {
+                system.log.send(shell, res, '403');
+                res.end();
+            } 
+        }
+    }
+});
+
+app.post('/users/new', async (req, res) => {
+    req.on('data', async data => { 
+        let uuid = req.cookies.UUID;
+        if (uuid == undefined) {
+            res.status('401').send("<script type=\"text/javascript\">window.location=\"./login\";</script>");
+            res.end();
+        }
+        else {
+            let shell = await system.get_shell(uuid);
+            
+            if (shell == null || shell.username != 'root') {
+                res.cookie('UUID', '', {maxAge: 0, httpOnly: true});
+                res.status('401').send("<script type=\"text/javascript\">window.alert(\"No permssions." + "\\n" + "Please login again!\");" + "\n" + "window.location=\"./login\";</script>");
+                res.end();
+            }
+            else {
+                let obj = JSON.parse(data);
+                let result = await system.new_user(obj.username, obj.password);
+                if (result == ture) {
+                    system.log.send(shell, res);
+                }
+                else {
+                    system.log.send(shell, res, '403');
+                    res.end();
+                } 
+            }
+        }
+    });
+});
+
+app.post('/users/delete', async (req, res) => {
+    req.on('data', async data => { 
+        let uuid = req.cookies.UUID;
+        if (uuid == undefined) {
+            res.status('401').send("<script type=\"text/javascript\">window.location=\"./login\";</script>");
+            res.end();
+        }
+        else {
+            let shell = await system.get_shell(uuid);
+            
+            if (shell == null || shell.username != 'root') {
+                res.cookie('UUID', '', {maxAge: 0, httpOnly: true});
+                res.status('401').send("<script type=\"text/javascript\">window.alert(\"No permssions." + "\\n" + "Please login again!\");" + "\n" + "window.location=\"./login\";</script>");
+                res.end();
+            }
+            else {
+                let obj = JSON.parse(data);
+                let result = await system.delete_user(obj.username);
+                if (result == ture) {
+                    system.log.send(shell, res);
+                }
+                else {
+                    system.log.send(shell, res, '403');
+                    res.end();
+                } 
+            }
+        }
+    });
+});
 app.listen(9005);

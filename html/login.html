@@ -50,6 +50,24 @@
             -moz-transition: all 0s ease-in 50ms;
             transition: all 0s ease-in 50ms;
         }
+
+        .container button {
+            width: 320px;
+            display: block;
+            height: 36px;
+            border: 0;
+            outline: 0;
+            padding: 6px 10px;
+            line-height: 24px;
+            margin: 40px auto;
+            -webkit-transition: all 0s ease-in 50ms;
+            -moz-transition: all 0s ease-in 50ms;
+            transition: all 0s ease-in 50ms;
+            font-size: 16px;
+            letter-spacing: 2px;
+            color: #666666;
+            background-color: #FFFFFF;
+        }
         
 
         .container input[type="text"] , .container input[type="password"]  {
@@ -58,12 +76,12 @@
             color: #50a3a2;
         }
 
-        .container input[type='submit'] {
+        /* .container button[type='submit'] {
             font-size: 16px;
             letter-spacing: 2px;
             color: #666666;
             background-color: #FFFFFF;
-        }
+        } */
 
         /* .container input:focus {
             width: 400px;
@@ -81,7 +99,7 @@
 
         }
 
-        .container input[type='submit']:hover {
+        .container button:hover {
             cursor: pointer;
             width: 400px;
 
@@ -318,7 +336,7 @@
         <label><input id="password" type="password" placeholder="password" style="border-radius:9px;" /></label>
 
 
-            <button style="border-radius:9px;" onclick="postXMLDoc();"/>
+            <button type = "submit" style="border-radius:9px;" onclick="postXMLDoc();">Login in</button>
 
             <p class="change_link" style="text-align: center; font-size: xx-small ; margin-top: 50px;">
 

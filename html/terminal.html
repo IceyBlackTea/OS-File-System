@@ -1,0 +1,189 @@
+<!--
+ * @Author: One_Random
+ * @Date: 2020-08-26 12:36:07
+ * @LastEditors: One_Random
+ * @LastEditTime: 2020-09-10 17:51:40
+ * @FilePath: /FS/html/terminal.html
+ * @Description: Copyright © 2020 One_Random. All rights reserved.
+-->
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>shell</title>
+        <script>
+            function XMLHTTP() {
+                let xmlhttp;
+                if (window.XMLHttpRequest)
+                    xmlhttp=new XMLHttpRequest();
+                else {
+                    xmlhttp=new ActiveXObject("Microsoft.XMLHTTP");
+                    windows.alert("Sorry!\nThis type of browser is not supported!");
+                }
+
+                return xmlhttp;
+            }
+
+            async function init() {
+                await postXMLDoc0();
+                message =sessionStorage.getItem('contents');
+                let commands = [];
+                commands = message.split('\n');
+                console.log(commands);
+                for(i = 0 ;i < commands.length;i++ ) {
+                   await postXMLDoc(commands[i]);
+                }
+            }
+            async function postXMLDoc0() {
+                let xmlhttp = XMLHTTP();
+
+                xmlhttp.onreadystatechange = () => {
+                    if (xmlhttp.readyState == 4) {
+                        console.log(xmlhttp.status);
+                        if (xmlhttp.status == 200) {
+                            if (xmlhttp.responseText == "log out") {
+                                window.alert("Thanks for using!\nLog out successfully!");
+                                location.reload();
+                            }
+                            else {
+                                let recv_obj = JSON.parse(xmlhttp.responseText);
+                                document.getElementById("result").innerHTML += "<br>" 
+                                                                            + recv_obj.message + "<br>"
+                                                                            + recv_obj.username + "@sfs:" + recv_obj.dir + "# ";
+                                // document.getElementById("input").value = "";
+                            } 
+                        }
+                        else if (xmlhttp.status == 201) {
+                            let recv_obj = JSON.parse(xmlhttp.responseText);
+                            document.getElementById("result").innerHTML +=  "<br>" 
+                                                                            // + recv_obj.message + "<br>"
+                                                                            + recv_obj.username + "@sfs:" + recv_obj.dir + "# ";
+                            window.open(recv_obj.message);
+                            // document.getElementById("input").value = "";
+                        }
+                        else if (xmlhttp.status == 202) {
+                            let recv_obj = JSON.parse(xmlhttp.responseText);
+                            document.getElementById("result").innerHTML +=   "<br>" 
+                                                                            // + recv_obj.message + "<br>"
+                                                                            + recv_obj.username + "@sfs:" + recv_obj.dir + "# ";
+                            console.log(recv_obj.message);
+                            // document.getElementById("input").value = "";
+                        }
+
+                        else if (xmlhttp.status == 401) {
+                            window.alert("Authentication has expired!\nPlease login again!"); 
+                            window.location = "/login";
+                        }
+                        else if (xmlhttp.status == 403) {
+                            let recv_obj = JSON.parse(xmlhttp.responseText);
+                            document.getElementById("result").innerHTML += "<br>" 
+                                                                        + recv_obj.message + "<br>"
+                                                                        + recv_obj.username + "@sfs:" + recv_obj.dir + "# ";
+                            document.getElementById("input").value = "";
+                        }
+                        else {
+                            document.getElementById("result").innerHTML += "Sorry!<br>It looks like something has gone wrong!<br>";
+                        }
+                    }
+                }
+                let method = "POST";
+                let url = "/shell/post";  
+                //let cmd = input.splice(0, 1);
+                let cmd = '';
+                let args = [];
+                let async = true;
+
+                let obj = {
+                    "cmd": cmd,
+                    "args": args
+                };
+                console.log(obj);
+                xmlhttp.open(method, url, async);
+                xmlhttp.send(JSON.stringify(obj));
+            
+            }
+
+            async function postXMLDoc(command) {
+                let xmlhttp = XMLHTTP();
+
+                xmlhttp.onreadystatechange = () => {
+                    if (xmlhttp.readyState == 4) {
+                        console.log(xmlhttp.status);
+                        if (xmlhttp.status == 200) {
+                            if (xmlhttp.responseText == "log out") {
+                                window.alert("Thanks for using!\nLog out successfully!");
+                                location.reload();
+                            }
+                            else {
+                                let recv_obj = JSON.parse(xmlhttp.responseText);
+                                document.getElementById("result").innerHTML += recv_obj.username + "@sfs:" + recv_obj.dir + "# "
+                                                                            + command+ "<br>" 
+                                                                            + recv_obj.message + "<br>"
+                                                                            
+                            } 
+                        }
+                        else if (xmlhttp.status == 201) {
+                            let recv_obj = JSON.parse(xmlhttp.responseText);
+                            document.getElementById("result").innerHTML += recv_obj.username + "@sfs:" + recv_obj.dir + "# " 
+                                                                        + command + "<br>";
+                                                                            // + recv_obj.message + "<br>"
+                                                                            
+                            window.open(recv_obj.message);
+                            document.getElementById("input").value = "";
+                        }
+                        else if (xmlhttp.status == 202) {
+                            let recv_obj = JSON.parse(xmlhttp.responseText);
+                            document.getElementById("result").innerHTML += recv_obj.username + "@sfs:" + recv_obj.dir + "# "
+                                                                            // + recv_obj.message + "<br>"
+                                                                        + command + "<br>";
+                            console.log(recv_obj.message);
+                        }
+
+                        else if (xmlhttp.status == 401) {
+                            window.alert("Authentication has expired!\nPlease login again!"); 
+                            window.location = "/login";
+                        }
+                        else if (xmlhttp.status == 403) {
+                            let recv_obj = JSON.parse(xmlhttp.responseText);
+                            document.getElementById("result").innerHTML += recv_obj.username + "@sfs:" + recv_obj.dir + "# "
+                                                                        + command.value + "<br>" 
+                                                                        + recv_obj.message + "<br>"
+                                                                        
+                            document.getElementById("input").value = "";
+                        }
+                        else {
+                            document.getElementById("result").innerHTML += "Sorry!<br>It looks like something has gone wrong!<br>";
+                        }
+                    }
+                }
+
+                //let input = document.getElementById("input").value.replace(/\s+/g," ").split(' ');
+                command = command.trim();
+                let input = [];
+                input = command.split(' ');
+                console.log(input);
+                let method = "POST";
+                let url = "/shell/post";  
+                let cmd = input.splice(0, 1);
+                let args = input;
+                let async = true;
+
+                let obj = {
+                    "cmd": cmd,
+                    "args": args
+                };
+                if(cmd == 'run'){
+                    alert('invalid command!!!');
+                    return;
+                }
+                xmlhttp.open(method, url, async);
+                xmlhttp.send(JSON.stringify(obj));
+            }
+
+        </script>
+    </head>
+    <body onload="init();">
+        <p id="result"></p>
+    </body>
+</html>
