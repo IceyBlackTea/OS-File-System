@@ -2,7 +2,7 @@
  * @Author: One_Random
  * @Date: 2020-08-23 11:17:12
  * @LastEditors: One_Random
- * @LastEditTime: 2020-09-10 17:45:43
+ * @LastEditTime: 2020-09-10 20:17:54
  * @FilePath: /FS/main.js
  * @Description: Copyright © 2020 One_Random. All rights reserved.
  */
@@ -637,33 +637,6 @@ app.get('/system/jobs', async (req, res) => {
             system.log.push(await system.get_jobs_info());
             system.log.send(shell, res);
             res.end();
-        }
-    }
-});
-
-app.post('/users/new', async (req, res) => {
-    let uuid = req.cookies.UUID;
-    if (uuid == undefined) {
-        res.status('401').send("<script type=\"text/javascript\">window.location=\"./login\";</script>");
-        res.end();
-    }
-    else {
-        let shell = await system.get_shell(uuid);
-        
-        if (shell == null || shell.username != 'root') {
-            res.cookie('UUID', '', {maxAge: 0, httpOnly: true});
-            res.status('401').send("<script type=\"text/javascript\">window.alert(\"No permssions." + "\\n" + "Please login again!\");" + "\n" + "window.location=\"./login\";</script>");
-            res.end();
-        }
-        else {
-            let result = await system.new_user();
-            if (result == ture) {
-                system.log.send(shell, res);
-            }
-            else {
-                system.log.send(shell, res, '403');
-                res.end();
-            } 
         }
     }
 });
