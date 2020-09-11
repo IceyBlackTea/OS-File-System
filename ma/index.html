@@ -1,0 +1,606 @@
+<!DOCTYPE html>
+<html lang="en">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="./css/primer.css" rel="stylesheet" type="text/css"/>
+    <title>Management system</title>
+    <style type="text/css">
+    body{
+        margin: 0;
+        padding: 0;
+        /* height: 100%; */
+        background-color:whitesmoke;
+    }
+    .job{
+        height:25px;
+        width:80px;
+        border-radius:4px;
+        border:1px solid #DBDBDB;
+    }
+
+    #main {
+        transition: margin-right .5s;/*主体内容延迟0.5s整体y右移动*/
+        padding: 0;
+    }
+
+    /*add table css*/
+    table {
+        border-collapse: collapse;
+        width:100%
+    }
+
+    table td,
+    table th {
+        font-weight: 600;
+        padding: 4px 7px;
+        text-align: center;
+        
+    }
+
+    table td {
+        color: #575757;
+        text-align: center;
+    }
+
+    table th:first-child,
+    table td:first-child {
+        padding-left: 8px;
+        text-align: center;
+    }
+    
+    table tr.default th {
+        border: 0;
+        text-align: center;
+    }
+
+    table tr.default td {
+        border: 0;
+        text-align: center;
+    }
+
+    table tr.default:nth-child(even) {
+        background: #f2f2f2;
+    }
+
+    table tr.default:nth-child(odd)  {
+        background: #fff;
+    }
+    </style>
+
+    <script type="text/javascript" src="./js/lib/d3.v5.min.js"></script>
+    <script type="text/javascript" src="./js/memory.js"></script>
+    <script type="text/javascript">
+        // var currprogram = "news";
+        var flag = 0;
+        var origin_jobs = new Array();
+        var jobs = new Array();
+        function changeNav() {
+            if (flag == 0){
+                flag = 1;
+                document.getElementById("mySidenav").style.width = "400px";
+                document.getElementById("main").style.marginRight = "160px";
+            }
+            else if (flag == 1){
+                flag = 0;
+                document.getElementById("mySidenav").style.width = "0";
+                document.getElementById("main").style.marginRight= "0";
+            }       
+        }
+
+        function display(ID){
+            var str = ID.replace(ID.substring(0, 1), ID.substring(0, 1).toUpperCase())
+            document.title = str + "-Rua!";
+
+            document.getElementById(currprogram).style.display='none';
+            document.getElementById(ID).style.display='block';
+            currprogram = ID;
+            
+            changeNav(); 
+        }
+
+        function hide_tips()  
+        {       
+            var ui =document.getElementById("showtips");      
+            ui.style.visibility="hidden";  
+        }
+        function show_tips()
+        {
+            var ui =document.getElementById("showtips");      
+            ui.style.visibility="visible";  
+        }
+
+        function XMLHTTP() {
+            let xmlhttp;
+            if (window.XMLHttpRequest)
+                xmlhttp=new XMLHttpRequest();
+            else {
+                xmlhttp=new ActiveXObject("Microsoft.XMLHTTP");
+                windows.alert("Sorry!\nThis type of browser is not supported!");
+            }
+
+            return xmlhttp;
+        }
+
+        function getXMLDoc(url) {
+            let xmlhttp = XMLHTTP();
+
+            xmlhttp.onreadystatechange = () => {
+                if (xmlhttp.readyState == 4) {
+                    if (xmlhttp.status == 200) {
+                        return xmlhttp.responseText;
+                    }
+                }
+            }
+
+            let method = "GET";
+            // let cmd = input.splice(0, 1);
+            // let args = input;
+            let async = true;
+
+            // let obj = {
+            //     "cmd": cmd,
+            //     "args": args
+            // };
+
+            xmlhttp.open(method, url, async);
+            //xmlhttp.send(JSON.stringify(obj));
+            xmlhttp.send();
+        }
+
+        function postXMLDoc(url) {
+            let xmlhttp = XMLHTTP();
+
+            xmlhttp.onreadystatechange = () => {
+                if (xmlhttp.readyState == 4) {
+                    if (xmlhttp.status == 200) {
+                        return xmlhttp.responseText;
+                    }
+                }
+            }
+
+            let method = "POST";
+            //let url = "/system/users";  
+            // let cmd = input.splice(0, 1);
+            // let args = input;
+            let async = true;
+
+            // let obj = {
+            //     "cmd": cmd,
+            //     "args": args
+            // };
+
+            xmlhttp.open(method, url, async);
+            //xmlhttp.send(JSON.stringify(obj));
+            xmlhttp.send();
+        }
+
+        function get_users_info() {
+            let xmlhttp = XMLHTTP();
+
+            xmlhttp.onreadystatechange = () => {
+                if (xmlhttp.readyState == 4) {
+                    if (xmlhttp.status == 200) {
+                        //console.log(xmlhttp.responseText);
+                        var recv_obj = xmlhttp.responseText;
+                       // console.log(recv_obj);
+                        recv_obj = JSON.parse(recv_obj);
+                        let info =recv_obj.message;
+                        users_info = info[0];;
+                        users_info = JSON.parse(users_info);
+                        console.log(users_info);
+                        for(i= 0 ;i<users_info.length;i++) {
+                            let user_name=users_info[i].name;
+                            console.log(user_name);
+                            add_userinfo_display(user_name,i);
+                        }
+                        
+                    }
+                }
+            }
+
+            let method = "GET";
+            let url = '/system/users';
+            let async = true;
+
+            xmlhttp.open(method, url, async);
+            xmlhttp.send();
+        }
+
+        function add_userinfo_display(user_name,index) {
+            let p = document.getElementById('users');
+            let str='<tr id='+index+'class="user"><td>'+user_name+'</td>';
+            let opinion ='<td><button class="btn btn-sm btn-danger" onclick="delete_user(\''+user_name+'\');" type="button">delete</button></td>';
+            //let opinion ='<td><button class="btn btn-sm btn-danger" onclick="delete_user(\'test1\');" type="button">delete</button></td>';
+            //root用户不可删除
+            if(user_name !='root')
+                str += opinion;
+            p.innerHTML += str;
+        }
+
+        function get_shells_info() {
+            let xmlhttp = XMLHTTP();
+
+            xmlhttp.onreadystatechange = () => {
+                if (xmlhttp.readyState == 4) {
+                    if (xmlhttp.status == 200) {
+                        console.log(xmlhttp.responseText);
+                        var info = JSON.parse(xmlhttp.responseText);
+                        shell_info = info.message;
+                        shell_info = shell_info[0];
+                        shell_info = JSON.parse(shell_info);
+                        console.log(shell_info);
+                        for(i = 0 ;i < shell_info.length;i++){
+                            let user_name = shell_info[i].username;
+                            let ip_address = shell_info[i].ip;
+                            add_shellinfo_display(user_name,ip_address);
+                        }
+                    }
+                }
+            }
+
+            let method = "GET";
+            let url = '/system/shells';
+            let async = true;
+
+            xmlhttp.open(method, url, async);
+            xmlhttp.send();
+        }
+
+        function add_shellinfo_display(user_name,ip_address) {
+            let p = document.getElementById('shell');
+            let str='<tr class="shell"><td>'+user_name+'</td><td>'+ip_address+'</td>';
+            p.innerHTML += str;
+        }
+
+        function get_jobs_info() {
+            let xmlhttp = XMLHTTP();
+
+            xmlhttp.onreadystatechange = () => {
+                if (xmlhttp.readyState == 4) {
+                    if (xmlhttp.status == 200) {
+                        console.log(xmlhttp.responseText);
+                        origin_jobs = JSON.parse((JSON.parse(xmlhttp.responseText)).message);
+                        console.log(origin_jobs);
+                        for(var i =0; i < origin_jobs.length; i++)
+                        {
+                            var id = origin_jobs[i].order_number;
+                            console.log(id);
+                            var size = origin_jobs[i].size;
+                            console.log(size);
+                            var in_at = origin_jobs[i].in_time;
+                            console.log(in_at);
+                            var run_time = origin_jobs[i].run_time;
+                            var user = origin_jobs[i].username;
+                            var cmd = origin_jobs[i].name;
+                            add_current_job_display(id,size,in_at,run_time,user,cmd);
+                        }
+                      
+                    }
+                }
+            }
+
+            let method = "GET";
+            let url = '/system/jobs';
+            let async = true;
+
+            xmlhttp.open(method, url, async);
+            xmlhttp.send();
+        }
+
+        function add_current_job_display(id,size,in_at,run_time,user,cmd) {
+        let p = document.getElementById('jobs');
+        let str='<tr class="default"><td>'+id+'</td><td>'+size+'</td><td>'+in_at+'</td><td>'+run_time+'</td><td>'+ user+"</td><td>" + cmd +"</td>";
+        p.innerHTML += str;
+    }
+        
+
+        async function origin_to_jobs() {
+            jobs = new Array();
+            for (let i = 0; i < origin_jobs.length; i++) {
+                origin = await origin_jobs[i];
+                job = new Job(origin.order_number, origin.size, origin.in_time, origin.run_time);
+                await jobs.push(job);
+                console.log(job);
+            }
+            // origin_jobs.length = 0;
+        }
+
+        function create_user() {
+            let dialog = document.getElementById('create_user');
+            dialog.show();
+        }
+
+        function delete_user(user_name) {
+            sessionStorage.setItem('delete_user',user_name);
+            let dialog = document.getElementById('delete_user');
+            dialog.show();
+        }
+        function closeDialog(id){
+            let dialog = document.getElementById(id);
+            dialog.close();
+        }
+        function deleteUser() {
+            let xmlhttp = XMLHTTP();
+
+            xmlhttp.onreadystatechange = () => {
+                if (xmlhttp.readyState == 4) {
+                    console.log(xmlhttp.status);
+                    
+                    //close dialog
+                    closeDialog('delete_user');
+                    //success
+                    if (xmlhttp.status == 200) {
+                        let recv_obj = JSON.parse(xmlhttp.responseText);
+                        alert('删除成功')
+                        dialog.close();
+                        sessionStorage.removeItem('delete_user');
+                    }
+                    //other
+                    else if (xmlhttp.status == 403) {
+                        let recv_obj = JSON.parse(xmlhttp.responseText);
+                        alert('')
+                    }
+                    //no permission
+                    else if(xmlhttp.status == 401){
+                        alert('error');
+                    }
+                }
+            }
+
+            let username = sessionStorage.getItem('delete_user');
+
+            if(username == 'root'){
+                alert('No permission');
+                return;
+            }
+
+            let method = "POST";
+            let url = "/users/delete";  
+            //let cmd = input.splice(0, 1);
+            let async = true;
+
+            let obj = {
+                "username": username,
+            };
+            console.log(obj);
+            xmlhttp.open(method, url, async);
+            xmlhttp.send(JSON.stringify(obj));
+        }
+        
+
+        function createUser(username,password) {
+                let xmlhttp = XMLHTTP();
+
+                xmlhttp.onreadystatechange = () => {
+                    if (xmlhttp.readyState == 4) {
+                        console.log(xmlhttp.status);
+                        
+                        //close dialog
+                        closeDialog('create_user');
+                        //success
+                        if (xmlhttp.status == 200) {
+                            let recv_obj = JSON.parse(xmlhttp.responseText);
+                            console.log(recv_obj);
+                        }
+                        //other
+                        else if (xmlhttp.status == 403) {
+                            let recv_obj = JSON.parse(xmlhttp.responseText);
+                            alert('error');
+                        }
+                        //no permission
+                        else if(xmlhttp.status == 401){
+                             console.log('no permission');
+                        }
+                    }
+                }
+
+                if(username == null||password == null){
+                    alert('用户名或密码不能为空!');
+                    return;
+                }
+                else if(username == 'root') {
+                    alert('failed');
+                    return;
+                }
+                let method = "POST";
+                let url = "/users/new";  
+                //let cmd = input.splice(0, 1);
+                let async = true;
+
+                let obj = {
+                    "username": username,
+                    "password": password
+                };
+                console.log(obj);
+                xmlhttp.open(method, url, async);
+                xmlhttp.send(JSON.stringify(obj));
+            }
+        
+    </script>
+
+    <body onload="get_users_info();get_shells_info();get_jobs_info();">
+        <!-- <div id="mySidenav" class="sidenav">
+            <a href='javascript:changeNav()'>Tips</a>
+        </div>
+         -->
+        <div  class="anim-scale-in bg-gray-dark text-white p-2">
+            <!-- <div style="display:flex;flex-direction:row"> -->
+            <h2 class="anim-fade-in" style="display:inline; color:white; margin-left: 40px;">
+                Management System
+            </h2>
+            <h3 class="btn btn-sm" type="button" style="border-color: #555454; border-width: 1px; display:inline; color: white; margin-left: 2%; background-color: #24292e;" onclick="show_tips()"> 
+                Tips
+            </h3> 
+            <!-- </div> -->
+        </div>
+
+    <div id="main" class="anim-fade-in">
+        <div class="application-main" style="display:flex;height: auto;" >
+            <div class="col-3 " style="height:inherit; width: 28%;">
+                <div id="userinfo" class="Box" style="width: 85%; height: 30%; margin-left:9%; margin-top: 8%;">
+                    <div class="Box-row" style="background-color:white; height: inherit; width: 100%; ">
+                        <div>
+                            <span style="color:grey; font-size: 20px; float: left;">  
+                                User Management
+                            </span>
+                            <button class="btn btn-sm" id='btn-create' type="button" onclick="create_user();" style="background-color: #2ea44e; color:white; width: 78px; margin-left: 48px; float: left; margin-top: 1%;">create</button>
+                        </div>
+                        <div id="showuser"  class="one-fourth column" style="height:350%; overflow: auto; background-color: white; width: 100%; border-radius:3px; margin-top: 4%;">
+                            <table>
+                                <thead>
+                                    <tr class="user">
+                                        <th>username</th>
+                                        <th>operation</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="users">
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div> 
+
+                <div id="shellinfo" class="Box" style="width: 85%; height: 43%; margin-left:9%; margin-top: 4%;">
+                    <div class="Box-row" style="background-color:white; height: inherit; width: 100%; ">
+                        <span style="color:grey; font-size: 20px; float: left;">  
+                            Shell
+                        </span>
+                            <div id="showshell"  class="one-fourth column" style="height: 90%; overflow: auto; background-color: white; width: 100%; border-radius:3px; margin-top: 4%;">
+                                <table>
+                                    <thead>
+                                        <tr class="shell">
+                                            <th>username</th>
+                                            <th>ip_address</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="shell">
+                                    </tbody>
+                                </table>
+                            </div>
+                    </div>
+                </div>  
+
+                <div id = "showtips" class="Box" style="width: 359px; margin-left: 9%; margin-top: 3%; height: 18%;">
+                    <div class="Box-row" style="background-color:#79b8ff; width: inherit; height:100%">
+                        <div style="display:flex;flex-direction:row">
+                            <h3 class="m-0" style="color: snow;">
+                                Tips
+                            </h3>
+                            <button class="btn-octicon" type="button" aria-label="Trashcan icon" onclick="hide_tips()" style="margin-left: 280px;">
+                              
+                                <svg class="octicon octicon-trashcan" viewBox="0 0 12 16" version="1.1" width="12" height="16" aria-hidden="true">
+                                <path fill-rule="evenodd" d="M11 2H9c0-.55-.45-1-1-1H5c-.55 0-1 .45-1 1H2c-.55 0-1 .45-1 1v1c0 .55.45 1 1 1v9c0 .55.45 1 1 1h7c.55 0 1-.45 1-1V5c.55 0 1-.45 1-1V3c0-.55-.45-1-1-1zm-1 12H3V5h1v8h1V5h1v8h1V5h1v8h1V5h1v9zm1-10H2V3h9v1z"></path></svg>
+                            </button>  
+                        </div> 
+
+                        <div> 
+                            <h5 style="color: snow;">
+                                1、The file system will be simulated as job on the right.
+                            </h5>
+                            <h5 style="color: snow;">
+                                2、The simulation is in detailed information and animation.
+                            </h5>
+                            <br>
+                        </div>
+                    </div>
+                </div>  
+            </div>    
+           
+                <div class="box-shadow p-3" style="display:flex; height:780px; background-color:whitesmoke; width: 40% ">
+                    <br>
+                    <div id="visiable" style="margin-top: 4%; margin-left: 5%;">
+                        <h2 class="m-0">
+                            Play the animation
+                        </h2>
+                        <br>
+                        <div id="control" style="margin-top: 2%;">
+                            <sapn>
+                                allocation algorithm
+                                <select id="algorithm" style="border-radius:2px;border:1px solid #DBDBDB"> 
+                                    <option value="FF">FF(首先适应算法)</option>
+                                    <option value="BF">BF(最佳适应算法)</option>
+                                    <option value="WF">WF(最差适应算法)</option>
+                                </select>
+                            </sapn>
+                            <button class="btn btn-sm" id='btn-reset' type="button" onclick="load_jobs();" style="background-color: #2ea44e; color:white; width: 78px; margin-left: 40px;">set jobs</button>
+                            <br>
+                            <br>
+                            <button class="btn btn-sm" type="button" style="width: 80px;" onclick="anime.step_play();">step play</button>
+                            <button class="btn btn-sm" type="button" style="width: 80px; margin-left: 100px;" onclick="anime.auto_play();">auto play</button>
+                            <button id="btn-pause" class="btn btn-sm" type="button" style="background-color:#79b8ff; color: white; width: 70px; margin-left: 48px;" onclick="pause();">pause</button>
+                            <!-- <button class="btn btn-sm" type="button" style="width: 60px; background-color: #e34c25; color:white; margin-right: 5px;" onclick="pause(); document.getElementById('btn-pause').innerHTML = 'pause'; set_up_system(); reset_svg(400, 400, input_size); anime = new Anime();">reset</button> -->
+                        </div>
+                        <br><br>
+                        <div id="figure">
+                            <svg id="visiable_svg"></svg>
+                        </div>
+                        <script src="./js/d3.js"></script>
+                        <script src="./js/setup.js"></script>
+                      
+                    </div>
+                </div>
+
+                <div class="box-shadow p-3" style="height:780px; background-color:whitesmoke; width: 28%;">
+                    <!-- <div class="box-shadow p-3" style="height:800px; background-color:#24292e; width: 400px; margin-top: 0px;"> -->
+                        <br>
+                        <div id="showprocess" class="Box" style="width: 85%; height: 45%; margin-left:0px; margin-top: 0px;">
+                            <div class="Box-row" style="background-color:white; height: 100%; width: 100%; ">
+                                <h4 class="m-0" style="color:grey; ">  
+                                    Operation Process
+                                </h4>
+                                    <div id="process" class="one-fourth column" style="height: 90%; overflow: auto; background-color: white; width: 100%; border-radius:3px;">
+                                    </div>
+                            </div>
+                        </div>
+                        <br><br>
+                        <div id="showjob" class="Box" style="overflow:auto; width: 85%; height: 45%;margin-left:0px;">
+                            <div class="Box-row" style="background-color:white;  height: 100%; width: 100%;">
+                                <h4 class="m-0" style="color:grey;">
+                                    Jobs added to the system
+                                </h4>
+                                    <table>
+                                        <thead>
+                                            <tr class="default">
+                                                <th>id</th>
+                                                <th>size</th>
+                                                <th>in at</th>
+                                                <th>run time</th>
+                                                <th>user</th>  <!--owner=user -->
+                                                <th>cmd</th>
+                                            </tr>
+                                        </thead>
+                                            <tbody id="jobs">
+                                            </tbody>
+                                    </table>
+                            </div>
+                        </div>
+                    <!-- </div> -->
+                </div>
+
+                    <dialog id="create_user" class="Box box-shadow">
+                        <div class="Box-row">
+                            用户名<input type="text" id="user_name">
+                            密码<input type="text" id="password">
+                        </div>
+                        <div class="Box-row">
+                          <button type="button" onclick="createUser(document.getElementById('user_name').value,document.getElementById('password').value)" class="btn mr-2">
+                            确定
+                          </button>
+                          <button type="button" onclick="closeDialog('create_user')" class="btn mr-2">
+                            取消
+                          </button>
+                        </div>
+                      </div>
+
+                      <dialog  style="position: absolute;top: 0;left: 0;right: 0;bottom: 0;margin: auto;"id="delete_user" class="Box box-shadow">
+                        <div class="Box-row">
+                            <h4 class="m-0">确认删除?</h4>
+                        </div>
+                            <button class="btn mr-2"  type="button" onclick="deleteUser()" type="button">确定</button>
+                            <button class="btn mr-2"  type="button" onclick="closeDialog('delete_user')" type="button">取消</button>
+                    </dialog>
+              
+        </div>
+    </div>
+    </body>
+</html>

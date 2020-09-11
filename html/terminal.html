@@ -2,8 +2,8 @@
  * @Author: One_Random
  * @Date: 2020-08-26 12:36:07
  * @LastEditors: One_Random
- * @LastEditTime: 2020-09-08 11:26:28
- * @FilePath: /FS/html/shell.html
+ * @LastEditTime: 2020-09-10 17:51:40
+ * @FilePath: /FS/html/terminal.html
  * @Description: Copyright © 2020 One_Random. All rights reserved.
 -->
 <!DOCTYPE html>
@@ -51,7 +51,7 @@
                                 document.getElementById("result").innerHTML += "<br>" 
                                                                             + recv_obj.message + "<br>"
                                                                             + recv_obj.username + "@sfs:" + recv_obj.dir + "# ";
-                                document.getElementById("input").value = "";
+                                // document.getElementById("input").value = "";
                             } 
                         }
                         else if (xmlhttp.status == 201) {
@@ -60,7 +60,7 @@
                                                                             // + recv_obj.message + "<br>"
                                                                             + recv_obj.username + "@sfs:" + recv_obj.dir + "# ";
                             window.open(recv_obj.message);
-                            document.getElementById("input").value = "";
+                            // document.getElementById("input").value = "";
                         }
                         else if (xmlhttp.status == 202) {
                             let recv_obj = JSON.parse(xmlhttp.responseText);
@@ -68,7 +68,7 @@
                                                                             // + recv_obj.message + "<br>"
                                                                             + recv_obj.username + "@sfs:" + recv_obj.dir + "# ";
                             console.log(recv_obj.message);
-                            document.getElementById("input").value = "";
+                            // document.getElementById("input").value = "";
                         }
 
                         else if (xmlhttp.status == 401) {
@@ -117,24 +117,26 @@
                             }
                             else {
                                 let recv_obj = JSON.parse(xmlhttp.responseText);
-                                document.getElementById("result").innerHTML += command+ "<br>" 
+                                document.getElementById("result").innerHTML += recv_obj.username + "@sfs:" + recv_obj.dir + "# "
+                                                                            + command+ "<br>" 
                                                                             + recv_obj.message + "<br>"
-                                                                            + recv_obj.username + "@sfs:" + recv_obj.dir + "# ";
+                                                                            
                             } 
                         }
                         else if (xmlhttp.status == 201) {
                             let recv_obj = JSON.parse(xmlhttp.responseText);
-                            document.getElementById("result").innerHTML += command + "<br>" 
+                            document.getElementById("result").innerHTML += recv_obj.username + "@sfs:" + recv_obj.dir + "# " 
+                                                                        + command + "<br>";
                                                                             // + recv_obj.message + "<br>"
-                                                                            + recv_obj.username + "@sfs:" + recv_obj.dir + "# ";
+                                                                            
                             window.open(recv_obj.message);
                             document.getElementById("input").value = "";
                         }
                         else if (xmlhttp.status == 202) {
                             let recv_obj = JSON.parse(xmlhttp.responseText);
-                            document.getElementById("result").innerHTML += command + "<br>" 
+                            document.getElementById("result").innerHTML += recv_obj.username + "@sfs:" + recv_obj.dir + "# "
                                                                             // + recv_obj.message + "<br>"
-                                                                            + recv_obj.username + "@sfs:" + recv_obj.dir + "# ";
+                                                                        + command + "<br>";
                             console.log(recv_obj.message);
                         }
 
@@ -144,9 +146,10 @@
                         }
                         else if (xmlhttp.status == 403) {
                             let recv_obj = JSON.parse(xmlhttp.responseText);
-                            document.getElementById("result").innerHTML += command.value + "<br>" 
+                            document.getElementById("result").innerHTML += recv_obj.username + "@sfs:" + recv_obj.dir + "# "
+                                                                        + command.value + "<br>" 
                                                                         + recv_obj.message + "<br>"
-                                                                        + recv_obj.username + "@sfs:" + recv_obj.dir + "# ";
+                                                                        
                             document.getElementById("input").value = "";
                         }
                         else {
