@@ -2,8 +2,8 @@
  * @Author: One_Random
  * @Date: 2020-07-06 10:50:57
  * @LastEditors: One_Random
- * @LastEditTime: 2020-07-16 23:09:00
- * @FilePath: /OS/js/memory.js
+ * @LastEditTime: 2020-09-11 10:28:20
+ * @FilePath: /FS/ma/js/memory.js
  * @Description: Copyright © 2020 One_Random. All rights reserved.
  */ 
 
@@ -104,10 +104,10 @@ class System {
                 // console.log('finish jobs', time, job);
                 this.running_jobs.splice(i, 1);
                 this.end_jobs.push(job);
-                sleep(0).then(() => {
-                        console.log(job);
-                        add_full_job_display(job);
-                })
+                // sleep(0).then(() => {
+                //         console.log(job);
+                //         //add_full_job_display(job);
+                // })
                 i -= 1;
             }
         }
@@ -389,7 +389,7 @@ class Anime {
 
     async auto_play() {
         if (this.play_time > time) {
-            let str = "The animation is over.<br>It took " + this.play_time + " time slices to show the process.";
+            let str = "The animation is over.<br>It took " + this.play_time + " time units to show the process.";
                         
             add_operation_display(str);
             
@@ -402,7 +402,7 @@ class Anime {
                     await sleep(this.wait_time + const_time).then(() => {this.auto_play();});
                 }
                 else {
-                    let str = "The animation is over.<br>It took " + this.play_time + " time slices to show the process.";
+                    let str = "The animation is over.<br>It took " + this.play_time + " time units to show the process.";
                         
                     add_operation_display(str);
                 }

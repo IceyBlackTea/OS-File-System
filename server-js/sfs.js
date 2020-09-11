@@ -2,7 +2,7 @@
  * @Author: One_Random
  * @Date: 2020-08-13 00:08:42
  * @LastEditors: One_Random
- * @LastEditTime: 2020-09-10 17:41:30
+ * @LastEditTime: 2020-09-11 10:26:00
  * @FilePath: /FS/server-js/sfs.js
  * @Description: Copyright © 2020 One_Random. All rights reserved.
  */
@@ -470,14 +470,13 @@ class System {
         if (user_name == 'root')
             return false;
 
-        let flag = false;
         for (let i = 0; i < this.users.length; i++) {
-            if (this.users[i].name = user_name) {
+            if (this.users[i].name == user_name) {
                 await this.users.splice(i, 1);
                 await sql_client.connect();
                 await sql_client.delete("users", {name: user_name});
                 await sql_client.disconnect();
-
+                
                 return true;
             }
         }
@@ -1073,10 +1072,6 @@ class System {
     async get_jobs_info(job) {
         return (JSON.stringify(this.jobs));
     }
-
-    // async delete_jobs(job) {
-        
-    // }
 }
 
 /*
@@ -1138,7 +1133,7 @@ async sendAll(shell, res, code="200") {
             message.push(this.send_buffers[i]);
         }
         //message += shell.username + '@sfs:' + shell.dir + '#';
-        console.log(message);
+        // console.log(message);
     }
     let obj = {
         username: shell.username,

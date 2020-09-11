@@ -2,7 +2,7 @@
  * @Author: One_Random
  * @Date: 2020-08-23 11:17:12
  * @LastEditors: One_Random
- * @LastEditTime: 2020-09-10 20:17:54
+ * @LastEditTime: 2020-09-11 10:24:24
  * @FilePath: /FS/main.js
  * @Description: Copyright © 2020 One_Random. All rights reserved.
  */
@@ -555,7 +555,7 @@ app.post('/file/upload',
 app.use(express.static(__dirname + '/ma'));
 
 app.get('/manager', async (req, res) => {
-    console.log(system.shells);
+    // console.log(system.shells);
     let uuid = req.cookies.UUID;
     if (uuid == undefined) {
         res.status('401').send("<script type=\"text/javascript\">window.location=\"./login\";</script>");
@@ -659,7 +659,7 @@ app.post('/users/new', async (req, res) => {
             else {
                 let obj = JSON.parse(data);
                 let result = await system.new_user(obj.username, obj.password);
-                if (result == ture) {
+                if (result == true) {
                     system.log.send(shell, res);
                 }
                 else {
@@ -689,7 +689,7 @@ app.post('/users/delete', async (req, res) => {
             else {
                 let obj = JSON.parse(data);
                 let result = await system.delete_user(obj.username);
-                if (result == ture) {
+                if (result == true) {
                     system.log.send(shell, res);
                 }
                 else {

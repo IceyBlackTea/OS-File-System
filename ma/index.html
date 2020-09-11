@@ -174,13 +174,26 @@
             xmlhttp.send();
         }
 
-        async function get_users_info() {
+        function get_users_info() {
             let xmlhttp = XMLHTTP();
 
             xmlhttp.onreadystatechange = () => {
                 if (xmlhttp.readyState == 4) {
                     if (xmlhttp.status == 200) {
-                        console.log(xmlhttp.responseText);
+                        //console.log(xmlhttp.responseText);
+                        var recv_obj = xmlhttp.responseText;
+                       // console.log(recv_obj);
+                        recv_obj = JSON.parse(recv_obj);
+                        let info =recv_obj.message;
+                        users_info = info[0];;
+                        users_info = JSON.parse(users_info);
+                        console.log(users_info);
+                        for(i= 0 ;i<users_info.length;i++) {
+                            let user_name=users_info[i].name;
+                            console.log(user_name);
+                            add_userinfo_display(user_name,i);
+                        }
+                        
                     }
                 }
             }
@@ -193,13 +206,34 @@
             xmlhttp.send();
         }
 
-        async function get_shells_info() {
+        function add_userinfo_display(user_name,index) {
+            let p = document.getElementById('users');
+            let str='<tr id='+index+'class="user"><td>'+user_name+'</td>';
+            let opinion ='<td><button class="btn btn-sm btn-danger" onclick="delete_user(\''+user_name+'\');" type="button">delete</button></td>';
+            //let opinion ='<td><button class="btn btn-sm btn-danger" onclick="delete_user(\'test1\');" type="button">delete</button></td>';
+            //root用户不可删除
+            if(user_name !='root')
+                str += opinion;
+            p.innerHTML += str;
+        }
+
+        function get_shells_info() {
             let xmlhttp = XMLHTTP();
 
             xmlhttp.onreadystatechange = () => {
                 if (xmlhttp.readyState == 4) {
                     if (xmlhttp.status == 200) {
                         console.log(xmlhttp.responseText);
+                        var info = JSON.parse(xmlhttp.responseText);
+                        shell_info = info.message;
+                        shell_info = shell_info[0];
+                        shell_info = JSON.parse(shell_info);
+                        console.log(shell_info);
+                        for(i = 0 ;i < shell_info.length;i++){
+                            let user_name = shell_info[i].username;
+                            let ip_address = shell_info[i].ip;
+                            add_shellinfo_display(user_name,ip_address);
+                        }
                     }
                 }
             }
@@ -212,15 +246,32 @@
             xmlhttp.send();
         }
 
-        async function get_jobs_info() {
+        function add_shellinfo_display(user_name,ip_address) {
+            let p = document.getElementById('shell');
+            let str='<tr class="shell"><td>'+user_name+'</td><td>'+ip_address+'</td>';
+            p.innerHTML += str;
+        }
+
+        function get_jobs_info() {
             let xmlhttp = XMLHTTP();
 
             xmlhttp.onreadystatechange = () => {
                 if (xmlhttp.readyState == 4) {
                     if (xmlhttp.status == 200) {
-                        console.log(xmlhttp.responseText);
+                        // console.log(xmlhttp.responseText);
                         origin_jobs = JSON.parse((JSON.parse(xmlhttp.responseText)).message);
                         console.log(origin_jobs);
+                        for(var i =0; i < origin_jobs.length; i++)
+                        {
+                            var id = origin_jobs[i].order_number;   
+                            var size = origin_jobs[i].size;
+                            var in_at = origin_jobs[i].in_time;
+                            var run_time = origin_jobs[i].run_time;
+                            var user = origin_jobs[i].username;
+                            var cmd = origin_jobs[i].name;
+                            add_current_job_display(id,size,in_at,run_time,user,cmd);
+                        }
+                      
                     }
                 }
             }
@@ -233,6 +284,12 @@
             xmlhttp.send();
         }
 
+        function add_current_job_display(id,size,in_at,run_time,user,cmd) {
+        let p = document.getElementById('jobs');
+        let str='<tr class="default"><td>'+id+'</td><td>'+size+'</td><td>'+in_at+'</td><td>'+run_time+'</td><td>'+ user+"</td><td>" + cmd +"</td>";
+        p.innerHTML += str;
+    }   
+
         async function origin_to_jobs() {
             jobs = new Array();
             for (let i = 0; i < origin_jobs.length; i++) {
@@ -243,9 +300,123 @@
             }
             // origin_jobs.length = 0;
         }
+
+        function create_user() {
+            let dialog = document.getElementById('create_user');
+            dialog.show();
+        }
+
+        function delete_user(user_name) {
+            sessionStorage.setItem('delete_user',user_name);
+            let dialog = document.getElementById('delete_user');
+            dialog.show();
+        }
+        function closeDialog(id){
+            let dialog = document.getElementById(id);
+            dialog.close();
+        }
+        function deleteUser() {
+            let xmlhttp = XMLHTTP();
+
+            xmlhttp.onreadystatechange = () => {
+                if (xmlhttp.readyState == 4) {
+                    console.log(xmlhttp.status);
+                    
+                    //close dialog
+                    closeDialog('delete_user');
+                    //success
+                    if (xmlhttp.status == 200) {
+                        let recv_obj = JSON.parse(xmlhttp.responseText);
+                        alert('删除成功');
+                        console.log(sessionStorage);
+                        sessionStorage.removeItem('delete_user');
+                        location.reload();
+                    }
+                    //other
+                    else if (xmlhttp.status == 403) {
+                        let recv_obj = JSON.parse(xmlhttp.responseText);
+                        alert('')
+                    }
+                    //no permission
+                    else if(xmlhttp.status == 401){
+                        alert('error');
+                    }
+                }
+            }
+
+            let username = sessionStorage.getItem('delete_user');
+
+            if(username == 'root'){
+                alert('No permission');
+                return;
+            }
+
+            let method = "POST";
+            let url = "/users/delete";  
+            //let cmd = input.splice(0, 1);
+            let async = true;
+
+            let obj = {
+                "username": username,
+            };
+            console.log(obj);
+            xmlhttp.open(method, url, async);
+            xmlhttp.send(JSON.stringify(obj));
+        }
+        
+
+        function createUser(username,password) {
+                let xmlhttp = XMLHTTP();
+
+                xmlhttp.onreadystatechange = () => {
+                    if (xmlhttp.readyState == 4) {
+                        console.log(xmlhttp.status);
+                        
+                        //close dialog
+                        closeDialog('create_user');
+                        //success
+                        if (xmlhttp.status == 200) {
+                            let recv_obj = JSON.parse(xmlhttp.responseText);
+                            console.log(recv_obj);
+                            location.reload();
+                        }
+                        //other
+                        else if (xmlhttp.status == 403) {
+                            let recv_obj = JSON.parse(xmlhttp.responseText);
+                            alert('error');
+                        }
+                        //no permission
+                        else if(xmlhttp.status == 401){
+                             console.log('no permission');
+                        }
+                    }
+                }
+
+                if(username == null||password == null){
+                    alert('用户名或密码不能为空!');
+                    return;
+                }
+                else if(username == 'root') {
+                    alert('failed');
+                    return;
+                }
+                let method = "POST";
+                let url = "/users/new";  
+                //let cmd = input.splice(0, 1);
+                let async = true;
+
+                let obj = {
+                    "username": username,
+                    "password": password
+                };
+                console.log(obj);
+                xmlhttp.open(method, url, async);
+                xmlhttp.send(JSON.stringify(obj));
+            }
+        
     </script>
 
-    <body onload="get_users_info();get_shells_info();get_jobs_info()">
+    <body onload="get_users_info();get_shells_info();get_jobs_info();">
         <!-- <div id="mySidenav" class="sidenav">
             <a href='javascript:changeNav()'>Tips</a>
         </div>
@@ -272,16 +443,18 @@
                             </span>
                             <button class="btn btn-sm" id='btn-create' type="button" onclick="create_user();" style="background-color: #2ea44e; color:white; width: 78px; margin-left: 48px; float: left; margin-top: 1%;">create</button>
                         </div>
-                            <div id="showuser"  class="one-fourth column" style="height: 90%; overflow: auto; background-color: white; width: 100%; border-radius:3px; margin-top: 4%;">
-                                <table>
-                                    <thead>
-                                        <tr class="user">
-                                            <th>username</th>
-                                            <th>operation</th>
-                                        </tr>
-                                    </thead>
-                                </table>
-                            </div>
+                        <div id="showuser"  class="one-fourth column" style="height:350%; overflow: auto; background-color: white; width: 100%; border-radius:3px; margin-top: 4%;">
+                            <table>
+                                <thead>
+                                    <tr class="user">
+                                        <th>username</th>
+                                        <th>operation</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="users">
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
                 </div> 
 
@@ -293,11 +466,13 @@
                             <div id="showshell"  class="one-fourth column" style="height: 90%; overflow: auto; background-color: white; width: 100%; border-radius:3px; margin-top: 4%;">
                                 <table>
                                     <thead>
-                                        <tr class="user">
+                                        <tr class="shell">
                                             <th>username</th>
                                             <th>ip_address</th>
                                         </tr>
                                     </thead>
+                                    <tbody id="shell">
+                                    </tbody>
                                 </table>
                             </div>
                     </div>
@@ -399,6 +574,29 @@
                         </div>
                     <!-- </div> -->
                 </div>
+
+                    <dialog id="create_user" class="Box box-shadow">
+                        <div class="Box-row">
+                            用户名<input type="text" id="user_name">
+                            密码<input type="text" id="password">
+                        </div>
+                        <div class="Box-row">
+                          <button type="button" onclick="createUser(document.getElementById('user_name').value,document.getElementById('password').value)" class="btn mr-2">
+                            确定
+                          </button>
+                          <button type="button" onclick="closeDialog('create_user')" class="btn mr-2">
+                            取消
+                          </button>
+                        </div>
+                      </div>
+
+                      <dialog  style="position: absolute;top: 0;left: 0;right: 0;bottom: 0;margin: auto;"id="delete_user" class="Box box-shadow">
+                        <div class="Box-row">
+                            <h4 class="m-0">确认删除?</h4>
+                        </div>
+                            <button class="btn mr-2"  type="button" onclick="deleteUser()" type="button">确定</button>
+                            <button class="btn mr-2"  type="button" onclick="closeDialog('delete_user')" type="button">取消</button>
+                    </dialog>
               
         </div>
     </div>

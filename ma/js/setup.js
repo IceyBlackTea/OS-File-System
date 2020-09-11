@@ -2,7 +2,7 @@
  * @Author: One_Random
  * @Date: 2020-07-14 08:58:47
  * @LastEditors: One_Random
- * @LastEditTime: 2020-09-09 17:43:28
+ * @LastEditTime: 2020-09-11 09:53:31
  * @FilePath: /FS/ma/js/setup.js
  * @Description: Copyright © 2020 One_Random. All rights reserved.
  */ 
@@ -34,7 +34,7 @@ async function set_up_system() {
         
     system = new System(size, type);
 
-    remove_all_jobs_display(); 
+    // remove_all_jobs_display(); 
     
     // add debug info
     if (debug)
@@ -171,7 +171,7 @@ async function load_jobs() {
                 "The max memory size is " + system.memory.size + "MB.<br>";
         add_operation_display(str);
 
-        // sleep(0).then(() => {system.run();});
+        sleep(0).then(() => {system.run();});
         
         add_operation_display("You can play the animation now.\n");
 

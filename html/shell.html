@@ -2,7 +2,7 @@
  * @Author: One_Random
  * @Date: 2020-08-26 12:36:07
  * @LastEditors: One_Random
- * @LastEditTime: 2020-09-10 17:53:28
+ * @LastEditTime: 2020-09-11 10:47:28
  * @FilePath: /FS/html/shell.html
  * @Description: Copyright © 2020 One_Random. All rights reserved.
 -->
@@ -319,7 +319,6 @@
 
             //右键命令
             function menuFunction(command){
-
                 let id = sessionStorage.getItem('clickId');
                 
 
@@ -665,7 +664,7 @@
                             console.log(message);
                             sessionStorage.setItem('contents',message);
                             //await setContent(message);
-                            setTimeout(function(){ window.open('./terminal'); }, 1000);
+                            setTimeout(function(){ window.open('./terminal'); }, 500);
                             /*document.getElementById("result").innerHTML += document.getElementById("input").value + "<br>" 
                                                                             + recv_obj.message + "<br>"
                                                                             + recv_obj.username + "@sfs:" + recv_obj.dir + "# ";*/
@@ -744,6 +743,11 @@
                     document.getElementById("file_panel").appendChild(item);
                 }
             }
+
+            function jump(){           
+                window.open('./manager');
+            }
+            
         </script>
     </head>
 
@@ -754,17 +758,21 @@
         </header>
         <!--按钮-->
         <div id ="button_panel">
-            <div style="width: 40%;margin-left: 10px;font-size: 19px;" id="router"></div>
-            <div>
-                <input id="files" type="file" name="file"/> 
-                <button type="button" class="btn mr-2" name="button" onclick="upload()">上传</button>
-                <p id="result"></p>
-            </div>
+            <div style="width: 40%;margin-left: 10px;padding-left: 20px; font-size: 19px;" id="router"></div>
+            <!-- <div style="padding-right: 50px; margin-bottom: 12px;"> -->
+            <input id="files" type="file" name="file" style="margin-bottom: 12px;"/> 
+            <button type="button" class="btn mr-2" name="button" onclick="upload()" style="margin-bottom: 12px;">上传</button>
+            <p id="result"></p>
+            <!-- </div> -->
             <div style="margin-left: 50px;margin-bottom: 12px;">
                 <button class="btn mr-2" type="button" onclick="createFolder()">新建文件夹</button>
             </div>
             <div style="margin-left: 50px; margin-bottom: 12px;">
                 <button class="btn mr-2" type="button" onclick="postXMLDoc('cd','..')">返回上一级</button>
+            </div>
+
+            <div style="margin-left: 50px;margin-bottom: 12px;">
+                <button class="btn mr-2" style="float:right" type="button" onclick="jump()">管理</button>
             </div>
 
             <div style="margin-left: 50px;margin-bottom: 12px;">
